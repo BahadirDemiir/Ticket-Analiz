@@ -12,6 +12,5 @@ public class Ticket
     public string? Priority { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? ResolvedDate { get; set; }
-    public string? SapModule { get; set; }
     public bool IsSynthetic { get; set; } = true;
 }
