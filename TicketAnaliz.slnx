@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TicketAnaliz.Api/TicketAnaliz.Api.csproj" />
+    <Project Path="src/TicketAnaliz.Core/TicketAnaliz.Core.csproj" />
+    <Project Path="src/TicketAnaliz.Infrastructure/TicketAnaliz.Infrastructure.csproj" />
+    <Project Path="src/TicketAnaliz.SeedGenerator/TicketAnaliz.SeedGenerator.csproj" />
+  </Folder>
+</Solution>
