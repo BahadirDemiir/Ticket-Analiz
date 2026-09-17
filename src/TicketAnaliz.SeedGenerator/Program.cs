@@ -16,6 +16,7 @@ services.AddQdrantServices(configuration);
 services.AddSingleton(sp => sp.GetRequiredService<Microsoft.SemanticKernel.Kernel>()
     .GetRequiredService<Microsoft.Extensions.AI.IEmbeddingGenerator<string, Microsoft.Extensions.AI.Embedding<float>>>());
 services.AddScoped<TicketSeedingService>();
+services.AddScoped<RerankingService>();
 services.AddScoped<QuickSearchService>();
 
 var provider = services.BuildServiceProvider();

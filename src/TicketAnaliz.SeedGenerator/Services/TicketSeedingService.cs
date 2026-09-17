@@ -61,8 +61,10 @@ public class TicketSeedingService
 
             await _ticketRepository.AddAsync(ticket);
 
-            var embeddingSourceText = string.Join(" ", new[] { ticket.Title, ticket.Description, ticket.Resolution }
-                .Where(s => !string.IsNullOrWhiteSpace(s)));
+            // Only the problem description is embedded, not the resolution: users query with
+            // symptoms, not solutions, so keeping the vector space symmetric with queries avoids
+            // solution-vocabulary (e.g. "zaman aşımı" in an unrelated fix) pulling in false matches.
+            var embeddingSourceText = $"{ticket.Title} {ticket.Description}";
 
             var vector = await _embeddingGenerator.GenerateVectorAsync(embeddingSourceText);
 
