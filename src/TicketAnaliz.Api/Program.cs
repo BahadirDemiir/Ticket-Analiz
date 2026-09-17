@@ -1,4 +1,4 @@
-using TicketAnaliz.Api.Extensions;
+using TicketAnaliz.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +10,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddSemanticKernelServices(builder.Configuration);
 
 var app = builder.Build();
 
