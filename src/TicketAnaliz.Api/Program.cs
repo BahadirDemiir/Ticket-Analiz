@@ -11,6 +11,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddSemanticKernelServices(builder.Configuration);
+builder.Services.AddQdrantServices(builder.Configuration);
+builder.Services.AddTicketSearchServices();
 
 var app = builder.Build();
 

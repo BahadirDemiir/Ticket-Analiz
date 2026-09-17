@@ -2,7 +2,7 @@ using TicketAnaliz.Core.Search;
 
 namespace TicketAnaliz.SeedGenerator.Services;
 
-public class QuickSearchService
+public class QuickSearchService // bu servis kullanıcıdan gelen sorguyu alır ve ITicketSearchService kullanarak arama yapar, ardından sonuçları konsola yazdırır.
 {
     private readonly ITicketSearchService _ticketSearchService;
 

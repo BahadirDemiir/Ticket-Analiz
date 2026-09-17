@@ -9,7 +9,7 @@ using TicketAnaliz.SeedGenerator.Models;
 
 namespace TicketAnaliz.SeedGenerator.Services;
 
-public class TicketSeedingService
+public class TicketSeedingService // bu servis, kendi oluşturduğumuz JSON dosyasından ticket verilerini okuyup SQL Server ve Qdrant'a yükler.
 {
     private readonly ITicketRepository _ticketRepository;
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
