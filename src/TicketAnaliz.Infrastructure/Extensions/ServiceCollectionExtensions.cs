@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
+using Qdrant.Client;
 using TicketAnaliz.Core.Repositories;
 using TicketAnaliz.Infrastructure.Context;
 using TicketAnaliz.Infrastructure.Repositories;
@@ -40,6 +41,18 @@ public static class ServiceCollectionExtensions
 
             return builder.Build();
         });
+
+        return services;
+    }
+
+    public static IServiceCollection AddQdrantServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        var host = configuration["Qdrant:Host"]
+            ?? throw new InvalidOperationException("Qdrant:Host is not configured.");
+        var port = int.Parse(configuration["Qdrant:Port"]
+            ?? throw new InvalidOperationException("Qdrant:Port is not configured."));
+
+        services.AddSingleton(_ => new QdrantClient(host, port));
 
         return services;
     }

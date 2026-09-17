@@ -1,11 +1,7 @@
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Qdrant.Client;
-using Qdrant.Client.Grpc;
 using TicketAnaliz.Infrastructure.Extensions;
+using TicketAnaliz.SeedGenerator.Services;
 
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json", optional: false)
@@ -13,61 +9,28 @@ var configuration = new ConfigurationBuilder()
     .Build();
 
 var services = new ServiceCollection();
+services.AddSingleton<IConfiguration>(configuration);
+services.AddInfrastructureServices(configuration);
 services.AddSemanticKernelServices(configuration);
+services.AddQdrantServices(configuration);
+services.AddSingleton(sp => sp.GetRequiredService<Microsoft.SemanticKernel.Kernel>()
+    .GetRequiredService<Microsoft.Extensions.AI.IEmbeddingGenerator<string, Microsoft.Extensions.AI.Embedding<float>>>());
+services.AddScoped<TicketSeedingService>();
+services.AddScoped<QuickSearchService>();
+
 var provider = services.BuildServiceProvider();
 
-var kernel = provider.GetRequiredService<Kernel>();
-var chatService = kernel.GetRequiredService<IChatCompletionService>();
+using var scope = provider.CreateScope();
 
-Console.WriteLine("OpenAI baglantisi test ediliyor...");
-
-var response = await chatService.GetChatMessageContentAsync(
-    "Merhaba! Bir cumlede kendini tanit.",
-    kernel: kernel);
-
-Console.WriteLine("Yanit alindi:");
-Console.WriteLine(response.Content);
-
-var embeddingGenerator = kernel.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
-
-Console.WriteLine();
-Console.WriteLine("Embedding uretimi test ediliyor...");
-
-var vector = await embeddingGenerator.GenerateVectorAsync("SAP RFC baglanti hatasi aliyorum");
-
-Console.WriteLine($"Vektor boyutu: {vector.Length}");
-Console.WriteLine($"Ilk 5 deger: {string.Join(", ", vector.ToArray().Take(5))}");
-
-Console.WriteLine();
-Console.WriteLine("Qdrant baglantisi test ediliyor...");
-
-var qdrantClient = new QdrantClient("localhost", 6334);
-const string testCollectionName = "tickets_smoke_test";
-
-if (!await qdrantClient.CollectionExistsAsync(testCollectionName))
+if (args.Length > 0 && args[0] == "--query")
 {
-    await qdrantClient.CreateCollectionAsync(
-        testCollectionName,
-        new VectorParams { Size = (ulong)vector.Length, Distance = Distance.Cosine });
-    Console.WriteLine($"'{testCollectionName}' koleksiyonu olusturuldu.");
+    var queryText = string.Join(" ", args.Skip(1));
+    var searchService = scope.ServiceProvider.GetRequiredService<QuickSearchService>();
+    await searchService.SearchAsync(queryText);
 }
-
-var pointId = Guid.NewGuid();
-await qdrantClient.UpsertAsync(testCollectionName, new List<PointStruct>
+else
 {
-    new()
-    {
-        Id = new PointId { Uuid = pointId.ToString() },
-        Vectors = vector.ToArray(),
-        Payload = { ["text"] = "SAP RFC baglanti hatasi aliyorum" }
-    }
-});
-Console.WriteLine($"Test noktasi yuklendi (Id: {pointId}).");
-
-var queryResults = await qdrantClient.QueryAsync(testCollectionName, vector.ToArray(), limit: 3);
-
-Console.WriteLine("Arama sonuclari:");
-foreach (var result in queryResults)
-{
-    Console.WriteLine($"  Skor: {result.Score}, Metin: {result.Payload["text"].StringValue}");
+    var seeder = scope.ServiceProvider.GetRequiredService<TicketSeedingService>();
+    var jsonPath = Path.Combine(AppContext.BaseDirectory, "Data", "synthetic_tickets.json");
+    await seeder.SeedFromJsonAsync(jsonPath);
 }
