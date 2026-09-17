@@ -33,7 +33,7 @@ public class TicketSearchService : ITicketSearchService
     {
         var queryVector = await _embeddingGenerator.GenerateVectorAsync(queryText, cancellationToken: ct);
 
-        // Re-ranking'in elemesi icin ihtiyac duyulandan biraz daha genis bir aday havuzu cekiyoruz.
+        // Re-ranking'in elemesi icin ihtiyac duyulandan biraz daha genis bir aday havuzu cekilir
         var candidatePoolSize = topK * 2;
         var qdrantResults = await _qdrantClient.QueryAsync(_collectionName, queryVector.ToArray(), limit: (ulong)candidatePoolSize, cancellationToken: ct);
 
