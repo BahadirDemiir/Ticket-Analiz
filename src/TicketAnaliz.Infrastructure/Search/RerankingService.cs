@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
-namespace TicketAnaliz.SeedGenerator.Services;
+namespace TicketAnaliz.Infrastructure.Search;
 
 public record RerankCandidate(int Index, string Title, string Description);
 

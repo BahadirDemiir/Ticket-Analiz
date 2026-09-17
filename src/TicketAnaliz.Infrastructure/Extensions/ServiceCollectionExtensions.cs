@@ -1,11 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Qdrant.Client;
 using TicketAnaliz.Core.Repositories;
+using TicketAnaliz.Core.Search;
 using TicketAnaliz.Infrastructure.Context;
 using TicketAnaliz.Infrastructure.Repositories;
+using TicketAnaliz.Infrastructure.Search;
 
 namespace TicketAnaliz.Infrastructure.Extensions;
 
@@ -42,6 +45,9 @@ public static class ServiceCollectionExtensions
             return builder.Build();
         });
 
+        services.AddSingleton(sp => sp.GetRequiredService<Kernel>()
+            .GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>());
+
         return services;
     }
 
@@ -53,6 +59,14 @@ public static class ServiceCollectionExtensions
             ?? throw new InvalidOperationException("Qdrant:Port is not configured."));
 
         services.AddSingleton(_ => new QdrantClient(host, port));
+
+        return services;
+    }
+
+    public static IServiceCollection AddTicketSearchServices(this IServiceCollection services)
+    {
+        services.AddScoped<RerankingService>();
+        services.AddScoped<ITicketSearchService, TicketSearchService>();
 
         return services;
     }

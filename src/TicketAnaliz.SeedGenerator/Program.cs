@@ -13,10 +13,8 @@ services.AddSingleton<IConfiguration>(configuration);
 services.AddInfrastructureServices(configuration);
 services.AddSemanticKernelServices(configuration);
 services.AddQdrantServices(configuration);
-services.AddSingleton(sp => sp.GetRequiredService<Microsoft.SemanticKernel.Kernel>()
-    .GetRequiredService<Microsoft.Extensions.AI.IEmbeddingGenerator<string, Microsoft.Extensions.AI.Embedding<float>>>());
+services.AddTicketSearchServices();
 services.AddScoped<TicketSeedingService>();
-services.AddScoped<RerankingService>();
 services.AddScoped<QuickSearchService>();
 
 var provider = services.BuildServiceProvider();
