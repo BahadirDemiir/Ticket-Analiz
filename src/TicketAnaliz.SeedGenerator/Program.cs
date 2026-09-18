@@ -46,6 +46,14 @@ else if (args.Length > 0 && args[0] == "--suggest")
     Console.WriteLine("=== LLM CEVABI ===");
     Console.WriteLine(result.Answer);
     Console.WriteLine();
+
+    if (result.HallucinationCheck is not null)
+    {
+        Console.WriteLine($"=== HALLUCINATION KONTROLU: {(result.HallucinationCheck.HasUnsupportedClaims ? "SUPHELI" : "TEMIZ")} ===");
+        Console.WriteLine(result.HallucinationCheck.Explanation);
+        Console.WriteLine();
+    }
+
     Console.WriteLine("=== KULLANILAN KAYNAKLAR ===");
     foreach (var source in result.Sources)
     {

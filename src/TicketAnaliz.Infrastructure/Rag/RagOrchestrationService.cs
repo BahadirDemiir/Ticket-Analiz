@@ -10,6 +10,7 @@ public class RagOrchestrationService : IRagOrchestrationService
     private readonly ITicketSearchService _ticketSearchService;
     private readonly RagPromptBuilder _promptBuilder;
     private readonly ConfidenceScoreCalculator _confidenceCalculator;
+    private readonly IHallucinationChecker _hallucinationChecker;
     private readonly IChatCompletionService _chatService;
     private readonly Kernel _kernel;
 
@@ -17,11 +18,13 @@ public class RagOrchestrationService : IRagOrchestrationService
         ITicketSearchService ticketSearchService,
         RagPromptBuilder promptBuilder,
         ConfidenceScoreCalculator confidenceCalculator,
+        IHallucinationChecker hallucinationChecker,
         Kernel kernel)
     {
         _ticketSearchService = ticketSearchService;
         _promptBuilder = promptBuilder;
         _confidenceCalculator = confidenceCalculator;
+        _hallucinationChecker = hallucinationChecker;
         _kernel = kernel;
         _chatService = kernel.GetRequiredService<IChatCompletionService>();
     }
@@ -37,10 +40,10 @@ public class RagOrchestrationService : IRagOrchestrationService
         // 3. ADIM: Guven yeterince dusukse LLM'e hic gitme
         if (confidence.ShouldEscalate)
         {
-            return new RagSuggestionResult(confidence.Message, sources, confidence);
+            return new RagSuggestionResult(confidence.Message, sources, confidence, HallucinationCheck: null);
         }
 
-        // Bulunanlari, rastgele boundary ile guvenli bir prompt'a yerlestir, prompt injection korumasý
+        // Bulunanlari, rastgele boundary ile guvenli bir prompt'a yerlestir, prompt injection korumasï¿½
         var prompt = _promptBuilder.Build(queryText, sources);
 
         // LLM'e gonder, cevabi al.
@@ -50,6 +53,9 @@ public class RagOrchestrationService : IRagOrchestrationService
         var response = await _chatService.GetChatMessageContentAsync(history, kernel: _kernel, cancellationToken: ct);
         var answer = response.Content ?? string.Empty;
 
-        return new RagSuggestionResult(answer, sources, confidence);
+        // Cevap uretildikten sonra, gercekten sadece kaynaklara mi dayandigini kontrol et.
+        var hallucinationCheck = await _hallucinationChecker.CheckAsync(answer, sources, ct);
+
+        return new RagSuggestionResult(answer, sources, confidence, hallucinationCheck);
     }
 }

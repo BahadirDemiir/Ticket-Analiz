@@ -77,6 +77,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<RagPromptBuilder>();
         services.AddScoped<ConfidenceScoreCalculator>();
+        services.AddScoped<IHallucinationChecker, HallucinationChecker>();
         services.AddScoped<IRagOrchestrationService, RagOrchestrationService>();
 
         return services;
