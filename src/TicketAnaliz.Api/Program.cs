@@ -13,6 +13,7 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddSemanticKernelServices(builder.Configuration);
 builder.Services.AddQdrantServices(builder.Configuration);
 builder.Services.AddTicketSearchServices();
+builder.Services.AddRagServices();
 
 var app = builder.Build();
 
