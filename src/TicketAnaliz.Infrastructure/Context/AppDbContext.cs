@@ -24,7 +24,9 @@ public class AppDbContext : DbContext
             entity.Property(t => t.Status).HasConversion<string>().HasMaxLength(20);
             entity.Property(t => t.Department).HasConversion<string>().HasMaxLength(50);
             entity.Property(t => t.Priority).HasMaxLength(20);
+            entity.Property(t => t.ScenarioKey).HasMaxLength(50);
 
+            entity.HasIndex(t => t.ScenarioKey);
             entity.HasIndex(t => t.Category);
             entity.HasIndex(t => t.Status);
             entity.HasIndex(t => t.Department);

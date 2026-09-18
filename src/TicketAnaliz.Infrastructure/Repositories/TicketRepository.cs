@@ -26,6 +26,11 @@ public class TicketRepository : ITicketRepository
             .ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<Ticket>> GetAllAsync(CancellationToken ct = default)
+    {
+        return await _context.Tickets.ToListAsync(ct);
+    }
+
     public async Task AddAsync(Ticket ticket, CancellationToken ct = default)
     {
         await _context.Tickets.AddAsync(ticket, ct);

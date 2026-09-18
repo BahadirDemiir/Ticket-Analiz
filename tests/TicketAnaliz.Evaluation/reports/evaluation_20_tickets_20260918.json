@@ -1,0 +1,222 @@
+[
+  {
+    "TicketId": "8e50fd4e-73b1-4318-80c2-0ea80229f103",
+    "Title": "Ay sonu kapan\u0131\u015F\u0131n\u0131 yeti\u015Ftiremiyoruz, sistem \u00E7ok yava\u015F",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 77,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 4335.5202
+  },
+  {
+    "TicketId": "a0b1bd41-240c-4e76-9e15-0f498bb5acb1",
+    "Title": "Bu job hatas\u0131 y\u00FCz\u00FCnden faturalar\u0131 elle i\u015Flemek zorunda kal\u0131yoruz, \u00E7ok yoruyor",
+    "Precision": 0.8,
+    "Recall": 1,
+    "ConfidencePercentage": 77,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 4337.6066
+  },
+  {
+    "TicketId": "6167f456-142d-4ef8-b4f6-1fb60ef81826",
+    "Title": "Bu sipari\u015F aktar\u0131m sorunu y\u00FCz\u00FCnden tedarik\u00E7ilerimize gecikme ya\u015Fat\u0131yoruz",
+    "Precision": 1,
+    "Recall": 0.25,
+    "ConfidencePercentage": 69.9,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 4622.3537
+  },
+  {
+    "TicketId": "49311cfe-bfa9-4531-99a6-20e377084abb",
+    "Title": "AC\u0130L: SAP RFC ba\u011Flant\u0131s\u0131 bir t\u00FCrl\u00FC d\u00FCzelmiyor, i\u015Flerimiz durdu!",
+    "Precision": 0.4,
+    "Recall": 0.5,
+    "ConfidencePercentage": 77,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 6913.2169
+  },
+  {
+    "TicketId": "24ebe17e-efc4-4436-a38f-255bd2e0de65",
+    "Title": "Bu lisans sorunu her yeni i\u015Fe al\u0131mda ba\u015F\u0131m\u0131za geliyor, \u00E7ok yoruldum",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 71,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 4056.4946
+  },
+  {
+    "TicketId": "f7766427-bfd6-4020-b509-3bfedd1ae38e",
+    "Title": "Yanl\u0131\u015F rapor y\u00FCz\u00FCnden y\u00F6netim kuruluna hatal\u0131 sunum yapt\u0131k",
+    "Precision": 0.8,
+    "Recall": 1,
+    "ConfidencePercentage": 66.6,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 6252.1736
+  },
+  {
+    "TicketId": "c5449757-1655-414e-9180-549eab893fec",
+    "Title": "Bu entegrasyon sorunu y\u00FCz\u00FCnden lojistik firmas\u0131yla aram\u0131z bozuluyor",
+    "Precision": 1,
+    "Recall": 0.75,
+    "ConfidencePercentage": 64.1,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 3965.0956
+  },
+  {
+    "TicketId": "fb74e952-6624-49cc-8d61-573e66a80fdf",
+    "Title": "Performans Sorunu Bildirimi - Sipari\u015F Mod\u00FCl\u00FC RFC Zaman A\u015F\u0131m\u0131",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 81.1,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 4213.1303
+  },
+  {
+    "TicketId": "83f1f81e-4217-4445-80f7-579bb51b8fa6",
+    "Title": "Lisans S\u0131n\u0131fland\u0131rma Hatas\u0131 Hakk\u0131nda Bilgi Talebi",
+    "Precision": 1,
+    "Recall": 0.75,
+    "ConfidencePercentage": 78.1,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 5838.813
+  },
+  {
+    "TicketId": "c2c33a9b-613d-4df3-bcaf-69e00ae0ef61",
+    "Title": "Zamanlanm\u0131\u015F G\u00F6rev Hata Bildirimi - Amortisman Hesaplama",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 80.1,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 4452.3871
+  },
+  {
+    "TicketId": "56075619-49c3-406d-8764-6b4cfecb4907",
+    "Title": "Entegrasyon Kesintisi Bildirimi - E-Fatura (CPI)",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 82.5,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 4112.7986
+  },
+  {
+    "TicketId": "f27c94aa-ed34-4f2e-b684-6c324ae21fb3",
+    "Title": "SAP GUI Ekran Donmas\u0131 Bildirimi",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 84.7,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 5219.1519
+  },
+  {
+    "TicketId": "cfe4c747-2dea-44b8-b317-713d9a6e899c",
+    "Title": "\u00C7\u0131kt\u0131 Hatas\u0131 Bildirimi - Fatura PDF Karakter Kodlamas\u0131",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 82.7,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 5216.3309
+  },
+  {
+    "TicketId": "69fb62ad-b860-42f5-8d08-b7badc3f973b",
+    "Title": "Stok Tutars\u0131zl\u0131\u011F\u0131 Bildirimi - Depo Y\u00F6netim Sistemi / SAP",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 80.1,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 5380.1288
+  },
+  {
+    "TicketId": "57b6d465-cb44-4b70-9522-b8234d2d6d49",
+    "Title": "Yetki Hatas\u0131 Bildirimi - S\u00F6zle\u015Fme Belgeleri Eri\u015Fimi",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 82.3,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 4286.4884
+  },
+  {
+    "TicketId": "14d5f212-00c4-46fc-aab5-ba7ff045ffc0",
+    "Title": "\u0130zin talebi giremedi\u011Fimiz i\u00E7in \u00E7al\u0131\u015Fanlar bize k\u0131z\u0131yor",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 69.6,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 3724.3067
+  },
+  {
+    "TicketId": "069eb98e-ff7e-49cb-a379-c703a694b5e9",
+    "Title": "Zaman A\u015F\u0131m\u0131 Hatas\u0131 Bildirimi (TIME_OUT) - Finans Mod\u00FCl\u00FC",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 80.8,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 3708.0111
+  },
+  {
+    "TicketId": "5ce9d53a-e03a-4958-b8ab-d4659c619af0",
+    "Title": "Neredeyse yanl\u0131\u015F hesaba b\u00FCy\u00FCk bir \u00F6deme g\u00F6nderiyorduk!",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 71.8,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 4275.8645
+  },
+  {
+    "TicketId": "bd20e8db-45bb-4def-8fc5-f1d28dd7dbf0",
+    "Title": "Hatal\u0131 Kredi Limiti Uyar\u0131s\u0131 Hakk\u0131nda Bildirim",
+    "Precision": 1,
+    "Recall": 0.75,
+    "ConfidencePercentage": 76.7,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 4035.8805
+  },
+  {
+    "TicketId": "b02301d6-4236-404f-bc55-f56fafb7c982",
+    "Title": "Bu yetki hatas\u0131 ciddi bir denetim riski olu\u015Fturuyor, acilen bak\u0131lmal\u0131",
+    "Precision": 1,
+    "Recall": 1,
+    "ConfidencePercentage": 73.6,
+    "Escalated": false,
+    "HasHallucination": false,
+    "Correctness": 0,
+    "TotalDurationMs": 4424.369
+  }
+]

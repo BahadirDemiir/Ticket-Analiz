@@ -39,62 +39,96 @@ public class TicketSeedingService // bu servis, kendi oluşturduğumuz JSON dosy
 
         Console.WriteLine($"{seedFile.Tickets.Count} adet ticket okundu, isleniyor...");
 
+        // Her senaryo grubunun (ayni scenarioKey'i paylasan varyasyonlar) SON varyasyonunu
+        // bilerek Qdrant'a yuklemiyoruz - bu, evaluation'da gercek bir "daha once hic
+        // gorulmemis soru" testi yapabilmemiz icin tutulan (held-out) bir test sorgusu olacak.
+        // SQL'e hepsi kaydediliyor, sadece vector store'a girip girmedigi farkli.
+        var groupedByScenario = seedFile.Tickets.GroupBy(t => t.ScenarioKey).ToList();
+
         var now = DateTime.UtcNow;
         var processed = 0;
+        var heldOutCount = 0;
+        var totalCount = seedFile.Tickets.Count;
 
-        foreach (var dto in seedFile.Tickets)
+        foreach (var group in groupedByScenario)
         {
-            var ticket = new Ticket
+            var variations = group.ToList();
+
+            // Held-out olarak, cozumu OLAN bir varyasyonu seciyoruz - yoksa "dogru cozum
+            // onerme orani" metrigini olcecek referans metnimiz olmaz. Cozumu olan yoksa
+            // (butun grup cozulmemisse) son varyasyonu kullaniyoruz.
+            var heldOutIndex = variations.FindLastIndex(v => !string.IsNullOrWhiteSpace(v.Resolution));
+            if (heldOutIndex < 0)
             {
-                Id = Guid.NewGuid(),
-                Title = dto.Title,
-                Description = dto.Description,
-                Category = dto.Category,
-                Department = Enum.Parse<Department>(dto.Department),
-                Resolution = dto.Resolution,
-                Status = Enum.Parse<TicketStatus>(dto.Status),
-                Priority = dto.Priority,
-                CreatedDate = now.AddDays(-dto.CreatedDaysAgo),
-                ResolvedDate = dto.ResolvedDaysAgo.HasValue ? now.AddDays(-dto.ResolvedDaysAgo.Value) : null,
-                IsSynthetic = true
-            };
+                heldOutIndex = variations.Count - 1;
+            }
 
-            await _ticketRepository.AddAsync(ticket);
-
-            // Only the problem description is embedded, not the resolution: users query with
-            // symptoms, not solutions, so keeping the vector space symmetric with queries avoids
-            // solution-vocabulary (e.g. "zaman aşımı" in an unrelated fix) pulling in false matches.
-            var embeddingSourceText = $"{ticket.Title} {ticket.Description}";
-
-            var vector = await _embeddingGenerator.GenerateVectorAsync(embeddingSourceText);
-
-            await EnsureCollectionExistsAsync(vector.Length);
-
-            await _qdrantClient.UpsertAsync(_collectionName, new List<PointStruct>
+            for (var i = 0; i < variations.Count; i++)
             {
-                new()
+                var dto = variations[i];
+                var isHeldOut = i == heldOutIndex;
+
+                var ticket = new Ticket
                 {
-                    Id = new PointId { Uuid = ticket.Id.ToString() },
-                    Vectors = vector.ToArray(),
-                    Payload =
-                    {
-                        ["category"] = ticket.Category,
-                        ["department"] = ticket.Department.ToString(),
-                        ["status"] = ticket.Status.ToString(),
-                        ["scenarioKey"] = dto.ScenarioKey,
-                        ["createdDate"] = new DateTimeOffset(ticket.CreatedDate).ToUnixTimeSeconds()
-                    }
-                }
-            });
+                    Id = Guid.NewGuid(),
+                    Title = dto.Title,
+                    Description = dto.Description,
+                    Category = dto.Category,
+                    Department = Enum.Parse<Department>(dto.Department),
+                    Resolution = dto.Resolution,
+                    Status = Enum.Parse<TicketStatus>(dto.Status),
+                    Priority = dto.Priority,
+                    CreatedDate = now.AddDays(-dto.CreatedDaysAgo),
+                    ResolvedDate = dto.ResolvedDaysAgo.HasValue ? now.AddDays(-dto.ResolvedDaysAgo.Value) : null,
+                    IsSynthetic = true,
+                    ScenarioKey = dto.ScenarioKey,
+                    IsInVectorStore = !isHeldOut
+                };
 
-            processed++;
-            if (processed % 10 == 0)
-            {
-                Console.WriteLine($"  {processed}/{seedFile.Tickets.Count} islendi...");
+                await _ticketRepository.AddAsync(ticket);
+
+                if (isHeldOut)
+                {
+                    heldOutCount++;
+                }
+                else
+                {
+                    // Only the problem description is embedded, not the resolution: users query with
+                    // symptoms, not solutions, so keeping the vector space symmetric with queries avoids
+                    // solution-vocabulary (e.g. "zaman aşımı" in an unrelated fix) pulling in false matches.
+                    var embeddingSourceText = $"{ticket.Title} {ticket.Description}";
+
+                    var vector = await _embeddingGenerator.GenerateVectorAsync(embeddingSourceText);
+
+                    await EnsureCollectionExistsAsync(vector.Length);
+
+                    await _qdrantClient.UpsertAsync(_collectionName, new List<PointStruct>
+                    {
+                        new()
+                        {
+                            Id = new PointId { Uuid = ticket.Id.ToString() },
+                            Vectors = vector.ToArray(),
+                            Payload =
+                            {
+                                ["category"] = ticket.Category,
+                                ["department"] = ticket.Department.ToString(),
+                                ["status"] = ticket.Status.ToString(),
+                                ["scenarioKey"] = dto.ScenarioKey,
+                                ["createdDate"] = new DateTimeOffset(ticket.CreatedDate).ToUnixTimeSeconds()
+                            }
+                        }
+                    });
+                }
+
+                processed++;
+                if (processed % 10 == 0)
+                {
+                    Console.WriteLine($"  {processed}/{totalCount} islendi...");
+                }
             }
         }
 
-        Console.WriteLine($"Tamamlandi: {processed} ticket SQL Server'a ve Qdrant'a yuklendi.");
+        Console.WriteLine($"Tamamlandi: {processed} ticket SQL Server'a yazildi, {processed - heldOutCount} tanesi Qdrant'a yuklendi, {heldOutCount} tanesi test icin tutuldu (held-out).");
     }
 
     private bool _collectionEnsured;

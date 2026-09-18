@@ -13,4 +13,13 @@ public class Ticket
     public DateTime CreatedDate { get; set; }
     public DateTime? ResolvedDate { get; set; }
     public bool IsSynthetic { get; set; } = true;
+
+    // Sentetik veri uretiminde ayni kok soruna ait varyasyonlari gruplamak icin kullanilir
+    // (orn. "rfc_1"). Evaluation'da hangi ticket'larin ayni senaryodan geldigini bulmak icin.
+    public string? ScenarioKey { get; set; }
+
+    // Bu ticket embed edilip Qdrant'a yuklendi mi? False ise "held-out" (tutulan) bir test
+    // sorgusu demektir - retrieval sistemi bunu hic gormemis olmali, evaluation'da gercek bir
+    // "daha once gorulmemis soru" testi yapabilmek icin bilerek Qdrant'a yuklenmez.
+    public bool IsInVectorStore { get; set; }
 }
