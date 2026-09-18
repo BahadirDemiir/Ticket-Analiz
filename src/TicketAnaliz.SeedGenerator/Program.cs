@@ -42,6 +42,22 @@ else if (args.Length > 0 && args[0] == "--suggest")
 
     Console.WriteLine($"=== GUVEN SKORU: %{result.Confidence.Percentage} ===");
     Console.WriteLine(result.Confidence.ShouldEscalate ? "DURUM: BT ekibine yonlendirilecek" : "DURUM: Cevap gosteriliyor");
+    Console.WriteLine($"  Ortalama Benzerlik: {result.Confidence.AverageSimilarity:F3}  (agirlik: %50)");
+    Console.WriteLine($"  Cozulmus Orani:     {result.Confidence.ResolvedRatio:F3}  (agirlik: %30)");
+    Console.WriteLine($"  Kaynak Sayisi Fakt.: {result.Confidence.SourceCountFactor:F3}  (agirlik: %20)");
+    Console.WriteLine();
+
+    Console.WriteLine("=== SISTEM IZI (TRACE) ===");
+    Console.WriteLine($"  Arama suresi:               {result.Trace.SearchDuration.TotalMilliseconds:F0} ms");
+    if (result.Trace.GenerationDuration is not null)
+    {
+        Console.WriteLine($"  LLM cevap uretme suresi:    {result.Trace.GenerationDuration.Value.TotalMilliseconds:F0} ms");
+    }
+    if (result.Trace.HallucinationCheckDuration is not null)
+    {
+        Console.WriteLine($"  Hallucination kontrol suresi: {result.Trace.HallucinationCheckDuration.Value.TotalMilliseconds:F0} ms");
+    }
+    Console.WriteLine($"  Toplam sure:                {result.Trace.TotalDuration.TotalMilliseconds:F0} ms");
     Console.WriteLine();
     Console.WriteLine("=== LLM CEVABI ===");
     Console.WriteLine(result.Answer);

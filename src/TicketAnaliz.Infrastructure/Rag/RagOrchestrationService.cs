@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using TicketAnaliz.Core.Rag;
@@ -31,31 +32,44 @@ public class RagOrchestrationService : IRagOrchestrationService
 
     public async Task<RagSuggestionResult> GenerateSuggestionAsync(string queryText, CancellationToken ct = default)
     {
+        var totalStopwatch = Stopwatch.StartNew();
+
         // Semantic search ile alakali gecmis ticket'lari bul.
+        var searchStopwatch = Stopwatch.StartNew();
         var sources = await _ticketSearchService.SearchAsync(queryText, topK: 5, ct: ct);
+        searchStopwatch.Stop();
 
         // Guven skorunu, LLM'i cagirmadan ONCE, sadece bulunan kaynaklara bakarak hesapla.
         var confidence = _confidenceCalculator.Calculate(sources);
 
-        // 3. ADIM: Guven yeterince dusukse LLM'e hic gitme
+        // Guven yeterince dusukse LLM'e hic gitme
         if (confidence.ShouldEscalate)
         {
-            return new RagSuggestionResult(confidence.Message, sources, confidence, HallucinationCheck: null);
+            totalStopwatch.Stop();
+            var escalatedTrace = new RagTrace(searchStopwatch.Elapsed, null, null, totalStopwatch.Elapsed);
+            return new RagSuggestionResult(confidence.Message, sources, confidence, HallucinationCheck: null, escalatedTrace);
         }
 
-        // Bulunanlari, rastgele boundary ile guvenli bir prompt'a yerlestir, prompt injection korumas�
+        // Bulunanlari, rastgele boundary ile guvenli bir prompt'a yerlestir, prompt injection korumasi
         var prompt = _promptBuilder.Build(queryText, sources);
 
         // LLM'e gonder, cevabi al.
         var history = new ChatHistory(prompt.SystemPrompt);
         history.AddUserMessage(prompt.UserPrompt);
 
+        var generationStopwatch = Stopwatch.StartNew();
         var response = await _chatService.GetChatMessageContentAsync(history, kernel: _kernel, cancellationToken: ct);
+        generationStopwatch.Stop();
         var answer = response.Content ?? string.Empty;
 
         // Cevap uretildikten sonra, gercekten sadece kaynaklara mi dayandigini kontrol et.
+        var hallucinationStopwatch = Stopwatch.StartNew();
         var hallucinationCheck = await _hallucinationChecker.CheckAsync(answer, sources, ct);
+        hallucinationStopwatch.Stop();
 
-        return new RagSuggestionResult(answer, sources, confidence, hallucinationCheck);
+        totalStopwatch.Stop();
+        var trace = new RagTrace(searchStopwatch.Elapsed, generationStopwatch.Elapsed, hallucinationStopwatch.Elapsed, totalStopwatch.Elapsed);
+
+        return new RagSuggestionResult(answer, sources, confidence, hallucinationCheck, trace);
     }
 }

@@ -3,7 +3,13 @@ using TicketAnaliz.Core.Search;
 
 namespace TicketAnaliz.Core.Rag;
 
-public record ConfidenceResult(double Percentage, bool ShouldEscalate, string Message);
+public record ConfidenceResult(
+    double Percentage,
+    bool ShouldEscalate,
+    string Message,
+    double AverageSimilarity,
+    double ResolvedRatio,
+    double SourceCountFactor);
 
 public class ConfidenceScoreCalculator
 {
@@ -14,7 +20,7 @@ public class ConfidenceScoreCalculator
     {
         if (sources.Count == 0)
         {
-            return new ConfidenceResult(0, true, "Yeterli geçmiş kayıt bulunamadı. Ticket BT ekibine yönlendirilecektir.");
+            return new ConfidenceResult(0, true, "Yeterli geçmiş kayıt bulunamadı. Ticket BT ekibine yönlendirilecektir.", 0, 0, 0);
         }
 
         var avgSimilarity = sources.Average(s => s.Score);
@@ -29,6 +35,6 @@ public class ConfidenceScoreCalculator
             ? "Yeterli geçmiş kayıt bulunamadı. Ticket BT ekibine yönlendirilecektir."
             : "Öneri geçmiş kayıtlara dayanmaktadır.";
 
-        return new ConfidenceResult(percentage, shouldEscalate, message);
+        return new ConfidenceResult(percentage, shouldEscalate, message, avgSimilarity, resolvedRatio, countFactor);
     }
 }
