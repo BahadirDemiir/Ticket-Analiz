@@ -29,12 +29,20 @@ public class RerankingService
             Aşağıda semantic search ile bulunan aday ticket'lar var. Görevin, bunlardan HANGİLERİNİN
             kullanıcının sorduğu sorunla GERÇEKTEN aynı veya çok yakın konuda olduğunu belirlemek.
             Sadece yüzeysel kelime benzerliğine değil, gerçek konu/kök neden benzerliğine bak.
-            Örneğin "ekran donuyor" ile "ekran boş kalıyor" farklı kök nedenlerdir, alakalı sayma.
+
+            Önce, ÖNCE HİÇBİR ŞEY VARSAYMADAN her aday için ayrı ayrı şunu değerlendir: sorgu ile
+            aday, aynı somut olay/sorun türünü mü anlatıyor, yoksa sadece bazı kelimeler rastlantısal
+            olarak mı örtüşüyor? Bunu bir-iki cümlelik kısa bir gerekçeyle her aday için yaz
+            (örn. "[0] Alakalı degil - sorgu X hakkinda, bu aday Y hakkinda, sadece '...' kelimesi
+            ortak"). Örneğin "ekran donuyor" ile "ekran boş kalıyor" farklı kök nedenlerdir, alakalı
+            sayma. Sorgu tamamen farklı bir konudaysa (teknik bir arıza değil de bambaşka bir şeyse),
+            hiçbir adayı zorla alakalı gösterme - boş liste dönmek tamamen kabul edilebilir bir sonuç.
 
             Adaylar:
             {candidatesText}
 
-            Sadece şu JSON formatında cevap ver, başka hiçbir metin yazma:
+            Gerekçelerini yazdıktan SONRA, en son satırda ve SADECE o satırda şu JSON formatında
+            nihai kararını ver (gerekçe metninin JSON'un içine karışmasın):
             {jsonFormatExample}
             """;
 
@@ -59,16 +67,16 @@ public class RerankingService
 
     private static string ExtractJson(string content)
     {
+        // Artik cevap once gerekce metni, en sonda JSON iceriyor - "son { ... son }" arasini al.
         var trimmed = content.Trim();
-        if (trimmed.StartsWith("```"))
+        var lastOpenBrace = trimmed.LastIndexOf('{');
+        var lastCloseBrace = trimmed.LastIndexOf('}');
+
+        if (lastOpenBrace >= 0 && lastCloseBrace > lastOpenBrace)
         {
-            var firstNewline = trimmed.IndexOf('\n');
-            var lastFence = trimmed.LastIndexOf("```");
-            if (firstNewline >= 0 && lastFence > firstNewline)
-            {
-                trimmed = trimmed[(firstNewline + 1)..lastFence].Trim();
-            }
+            return trimmed[lastOpenBrace..(lastCloseBrace + 1)];
         }
+
         return trimmed;
     }
 
