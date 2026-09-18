@@ -15,7 +15,7 @@ public class TicketsController : ControllerBase
         _ticketSearchService = ticketSearchService;
     }
 
-    [HttpPost("search")]
+    [HttpPost("search")] // orkestra þefi olan TicketSearchService'ye ticket bilgilerini gönderip aramayý tetikleyecek endpoint
     public async Task<ActionResult<TicketSearchResponse>> Search([FromBody] TicketSearchRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Query))

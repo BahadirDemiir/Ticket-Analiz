@@ -4,9 +4,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Qdrant.Client;
+using TicketAnaliz.Core.Rag;
 using TicketAnaliz.Core.Repositories;
 using TicketAnaliz.Core.Search;
 using TicketAnaliz.Infrastructure.Context;
+using TicketAnaliz.Infrastructure.Rag;
 using TicketAnaliz.Infrastructure.Repositories;
 using TicketAnaliz.Infrastructure.Search;
 
@@ -67,6 +69,14 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<RerankingService>();
         services.AddScoped<ITicketSearchService, TicketSearchService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddRagServices(this IServiceCollection services)
+    {
+        services.AddScoped<RagPromptBuilder>();
+        services.AddScoped<IRagOrchestrationService, RagOrchestrationService>();
 
         return services;
     }
