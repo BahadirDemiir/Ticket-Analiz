@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Ticket> Tickets => Set<Ticket>();
+    public DbSet<SuggestionLog> SuggestionLogs => Set<SuggestionLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +32,18 @@ public class AppDbContext : DbContext
             entity.HasIndex(t => t.Status);
             entity.HasIndex(t => t.Department);
             entity.HasIndex(t => t.CreatedDate);
+        });
+
+        modelBuilder.Entity<SuggestionLog>(entity =>
+        {
+            entity.ToTable("SuggestionLogs");
+            entity.HasKey(l => l.Id);
+            entity.Property(l => l.Query).HasColumnType("nvarchar(max)").IsRequired();
+            entity.Property(l => l.Answer).HasColumnType("nvarchar(max)").IsRequired();
+            entity.Property(l => l.HallucinationExplanation).HasColumnType("nvarchar(max)");
+            entity.Property(l => l.SourcesJson).HasColumnType("nvarchar(max)");
+
+            entity.HasIndex(l => l.CreatedAt);
         });
     }
 }

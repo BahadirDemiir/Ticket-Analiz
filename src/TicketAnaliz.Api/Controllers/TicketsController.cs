@@ -1,6 +1,9 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using TicketAnaliz.Api.Contracts;
+using TicketAnaliz.Core.Entities;
 using TicketAnaliz.Core.Rag;
+using TicketAnaliz.Core.Repositories;
 using TicketAnaliz.Core.Search;
 
 namespace TicketAnaliz.Api.Controllers;
@@ -11,11 +14,16 @@ public class TicketsController : ControllerBase
 {
     private readonly ITicketSearchService _ticketSearchService;
     private readonly IRagOrchestrationService _ragOrchestrationService;
+    private readonly ISuggestionLogRepository _suggestionLogRepository;
 
-    public TicketsController(ITicketSearchService ticketSearchService, IRagOrchestrationService ragOrchestrationService)
+    public TicketsController(
+        ITicketSearchService ticketSearchService,
+        IRagOrchestrationService ragOrchestrationService,
+        ISuggestionLogRepository suggestionLogRepository)
     {
         _ticketSearchService = ticketSearchService;
         _ragOrchestrationService = ragOrchestrationService;
+        _suggestionLogRepository = suggestionLogRepository;
     }
 
     [HttpPost("search")] // orkestra �efi olan TicketSearchService'ye ticket bilgilerini g�nderip aramay� tetikleyecek endpoint
@@ -92,6 +100,28 @@ public class TicketsController : ControllerBase
                 TotalDurationMs = result.Trace.TotalDuration.TotalMilliseconds
             }
         };
+
+        var sourcesForLog = result.Sources.Select(r => new { r.Ticket.Id, r.Ticket.Title, r.Score });
+        var log = new SuggestionLog
+        {
+            Id = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            Query = request.Query,
+            Answer = result.Answer,
+            ConfidencePercentage = result.Confidence.Percentage,
+            ShouldEscalate = result.Confidence.ShouldEscalate,
+            ConfidenceAverageSimilarity = result.Confidence.AverageSimilarity,
+            ConfidenceResolvedRatio = result.Confidence.ResolvedRatio,
+            ConfidenceSourceCountFactor = result.Confidence.SourceCountFactor,
+            HasHallucination = result.HallucinationCheck?.HasUnsupportedClaims,
+            HallucinationExplanation = result.HallucinationCheck?.Explanation,
+            SourcesJson = JsonSerializer.Serialize(sourcesForLog),
+            SearchDurationMs = result.Trace.SearchDuration.TotalMilliseconds,
+            GenerationDurationMs = result.Trace.GenerationDuration?.TotalMilliseconds,
+            HallucinationCheckDurationMs = result.Trace.HallucinationCheckDuration?.TotalMilliseconds,
+            TotalDurationMs = result.Trace.TotalDuration.TotalMilliseconds
+        };
+        await _suggestionLogRepository.AddAsync(log, ct);
 
         return Ok(response);
     }

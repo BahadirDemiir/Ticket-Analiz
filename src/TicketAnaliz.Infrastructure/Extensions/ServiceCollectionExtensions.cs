@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<ITicketRepository, TicketRepository>();
+        services.AddScoped<ISuggestionLogRepository, SuggestionLogRepository>();
 
         return services;
     }

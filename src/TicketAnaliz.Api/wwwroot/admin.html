@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Sorgu Geçmişi</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --card-bg: #ffffff;
+    --text: #1f2430;
+    --muted: #6b7280;
+    --border: #e2e5ea;
+    --primary: #2f6f4f;
+    --green: #1e8e5a;
+    --green-bg: #e6f6ee;
+    --yellow: #b7791f;
+    --yellow-bg: #fff8e6;
+    --red: #c53030;
+    --red-bg: #fdecec;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .container {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+  }
+
+  header h1 { font-size: 20px; margin: 0; }
+  header a { color: var(--primary); font-size: 13px; text-decoration: none; }
+  header a:hover { text-decoration: underline; }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr.row { cursor: pointer; }
+  tr.row:hover { background: var(--bg); }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .badge.green { background: var(--green-bg); color: var(--green); }
+  .badge.yellow { background: var(--yellow-bg); color: var(--yellow); }
+  .badge.red { background: var(--red-bg); color: var(--red); }
+
+  #detailCard { display: none; }
+
+  .field { margin-bottom: 14px; }
+  .field .label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .field .value { font-size: 14px; white-space: pre-wrap; line-height: 1.5; }
+
+  .trace-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .trace-item { background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 12px; }
+  .trace-item .label { color: var(--muted); }
+  .trace-item .value { font-weight: 600; font-size: 13px; }
+
+  .source-row { padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; display: flex; justify-content: space-between; }
+  .source-row:last-child { border-bottom: none; }
+
+  .hint { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Admin - Sorgu Geçmişi (Sistem İzi)</h1>
+    <a href="/">&larr; Ana sayfaya dön</a>
+  </header>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Tarih</th>
+          <th>Sorgu</th>
+          <th>Güven</th>
+          <th>Hallucination</th>
+          <th>Süre</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr><td colspan="5" class="hint">Yükleniyor...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" id="detailCard">
+    <div class="field">
+      <div class="label">Sorgu</div>
+      <div class="value" id="detailQuery"></div>
+    </div>
+    <div class="field">
+      <div class="label">Cevap</div>
+      <div class="value" id="detailAnswer"></div>
+    </div>
+    <div class="field">
+      <div class="label">Kaynak Ticket'lar</div>
+      <div id="detailSources"></div>
+    </div>
+    <div class="field">
+      <div class="label">Hallucination Kontrolü</div>
+      <div class="value" id="detailHallucination"></div>
+    </div>
+    <div class="field">
+      <div class="label">Sistem İzi</div>
+      <div class="trace-grid" id="detailTrace"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadHistory() {
+  const body = document.getElementById('historyBody');
+  try {
+    const res = await fetch('/api/admin/history?count=50');
+    if (!res.ok) throw new Error('Gecmis yuklenemedi: ' + res.status);
+    const items = await res.json();
+
+    if (items.length === 0) {
+      body.innerHTML = '<tr><td colspan="5" class="hint">Henüz kaydedilmiş bir sorgu yok. Ana sayfadan bir çözüm önerisi isteyin.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = items.map(item => `
+      <tr class="row" onclick="loadDetail('${item.id}')">
+        <td>${new Date(item.createdAt).toLocaleString('tr-TR')}</td>
+        <td>${escapeHtml(truncate(item.query, 70))}</td>
+        <td>${confidenceBadge(item.confidencePercentage, item.shouldEscalate)}</td>
+        <td>${hallucinationBadge(item.hasHallucination)}</td>
+        <td>${Math.round(item.totalDurationMs)} ms</td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    body.innerHTML = '<tr><td colspan="5" class="hint">Hata: ' + escapeHtml(err.message) + '</td></tr>';
+  }
+}
+
+async function loadDetail(id) {
+  const res = await fetch('/api/admin/history/' + id);
+  if (!res.ok) { alert('Detay yuklenemedi.'); return; }
+  const d = await res.json();
+
+  document.getElementById('detailQuery').textContent = d.query;
+  document.getElementById('detailAnswer').textContent = d.answer;
+
+  document.getElementById('detailSources').innerHTML = d.sources.map(s => `
+    <div class="source-row"><span>${escapeHtml(s.title)}</span><span>%${Math.round(s.score * 100)}</span></div>
+  `).join('') || '<span class="hint">Kaynak yok.</span>';
+
+  document.getElementById('detailHallucination').textContent =
+    d.hasHallucination === null ? '(hesaplanmadı - düşük güven nedeniyle LLM çağrılmadı)'
+    : (d.hasHallucination ? 'Şüpheli: ' + d.hallucinationExplanation : 'Temiz: ' + d.hallucinationExplanation);
+
+  document.getElementById('detailTrace').innerHTML = `
+    <div class="trace-item"><div class="label">Ortalama Benzerlik</div><div class="value">${d.confidenceAverageSimilarity.toFixed(3)}</div></div>
+    <div class="trace-item"><div class="label">Çözülmüş Oranı</div><div class="value">${d.confidenceResolvedRatio.toFixed(3)}</div></div>
+    <div class="trace-item"><div class="label">Kaynak Sayısı Faktörü</div><div class="value">${d.confidenceSourceCountFactor.toFixed(3)}</div></div>
+    <div class="trace-item"><div class="label">Arama Süresi</div><div class="value">${Math.round(d.searchDurationMs)} ms</div></div>
+    ${d.generationDurationMs != null ? `<div class="trace-item"><div class="label">LLM Üretim Süresi</div><div class="value">${Math.round(d.generationDurationMs)} ms</div></div>` : ''}
+    ${d.hallucinationCheckDurationMs != null ? `<div class="trace-item"><div class="label">Hallucination Kontrol Süresi</div><div class="value">${Math.round(d.hallucinationCheckDurationMs)} ms</div></div>` : ''}
+    <div class="trace-item"><div class="label">Toplam Süre</div><div class="value">${Math.round(d.totalDurationMs)} ms</div></div>
+  `;
+
+  document.getElementById('detailCard').style.display = 'block';
+  document.getElementById('detailCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function confidenceBadge(pct, escalate) {
+  const cls = escalate ? 'red' : (pct >= 80 ? 'green' : 'yellow');
+  return `<span class="badge ${cls}">%${pct}</span>`;
+}
+
+function hallucinationBadge(has) {
+  if (has === null) return '<span class="hint">-</span>';
+  return has ? '<span class="badge red">Şüpheli</span>' : '<span class="badge green">Temiz</span>';
+}
+
+function truncate(str, len) {
+  return str.length > len ? str.slice(0, len) + '…' : str;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+loadHistory();
+</script>
+</body>
+</html>
