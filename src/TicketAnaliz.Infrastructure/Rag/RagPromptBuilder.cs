@@ -8,10 +8,7 @@ public class RagPromptBuilder
 {
     public RagPrompt Build(string queryText, IReadOnlyList<TicketSearchResult> sources)
     {
-        // Kaynak ticket icerigini rastgele (her cagride farkli) bir sinirlayici ile sarmaliyoruz.
-        // Sabit bir etiket adi (orn. <kaynak_ticket>) kullansaydik, gecmiste kotu niyetle
-        // yazilmis bir ticket aciklamasi bu etiketi taklit edip sahte bir talimat enjekte
-        // edebilirdi. Boundary her istekte yeniden uretildigi icin bu tahmin edilemez.
+
         var boundary = Guid.NewGuid().ToString("N");
 
         var systemPrompt = $"""

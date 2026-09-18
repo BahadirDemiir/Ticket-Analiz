@@ -76,6 +76,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRagServices(this IServiceCollection services)
     {
         services.AddScoped<RagPromptBuilder>();
+        services.AddScoped<ConfidenceScoreCalculator>();
         services.AddScoped<IRagOrchestrationService, RagOrchestrationService>();
 
         return services;

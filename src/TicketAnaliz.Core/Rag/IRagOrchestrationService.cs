@@ -2,7 +2,7 @@ using TicketAnaliz.Core.Search;
 
 namespace TicketAnaliz.Core.Rag;
 
-public record RagSuggestionResult(string Answer, IReadOnlyList<TicketSearchResult> Sources);
+public record RagSuggestionResult(string Answer, IReadOnlyList<TicketSearchResult> Sources, ConfidenceResult Confidence);
 
 public interface IRagOrchestrationService
 {
