@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
 
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<SuggestionLog> SuggestionLogs => Set<SuggestionLog>();
+    public DbSet<AppUser> Users => Set<AppUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,7 +47,21 @@ public class AppDbContext : DbContext
             entity.Property(l => l.WebSourcesJson).HasColumnType("nvarchar(max)");
             entity.Property(l => l.WebSearchQuery).HasMaxLength(500);
 
+            entity.Property(l => l.UserName).HasMaxLength(50);
+
             entity.HasIndex(l => l.CreatedAt);
+        });
+
+        modelBuilder.Entity<AppUser>(entity =>
+        {
+            entity.ToTable("Users");
+            entity.HasKey(u => u.Id);
+            entity.Property(u => u.UserName).HasMaxLength(50).IsRequired();
+            entity.Property(u => u.PasswordHash).HasMaxLength(500).IsRequired();
+            entity.Property(u => u.Role).HasConversion<string>().HasMaxLength(20);
+
+            // Ayni kullanici adiyla iki hesap olmasin (SQL Server'da buyuk/kucuk harf duyarsiz).
+            entity.HasIndex(u => u.UserName).IsUnique();
         });
     }
 }

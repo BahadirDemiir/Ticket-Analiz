@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketAnaliz.Api.Contracts;
 using TicketAnaliz.Api.Mapping;
@@ -8,6 +9,7 @@ using TicketAnaliz.Core.Search;
 namespace TicketAnaliz.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class TicketsController : ControllerBase
 {
@@ -50,7 +52,7 @@ public class TicketsController : ControllerBase
 
         var result = await _ragOrchestrationService.GenerateSuggestionAsync(request.Query, ct: ct);
 
-        await _suggestionLogRepository.AddAsync(result.ToLog(request.Query), ct);
+        await _suggestionLogRepository.AddAsync(result.ToLog(request.Query, User.Identity?.Name), ct);
 
         return Ok(result.ToResponse());
     }

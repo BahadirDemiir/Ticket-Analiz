@@ -4,6 +4,7 @@ public class SuggestionLogSummaryDto
 {
     public Guid Id { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? UserName { get; set; }
     public string Query { get; set; } = default!;
     public string AnswerSource { get; set; } = default!;
     public double ConfidencePercentage { get; set; }
@@ -16,6 +17,7 @@ public class SuggestionLogDetailDto
 {
     public Guid Id { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? UserName { get; set; }
     public string Query { get; set; } = default!;
     public string Answer { get; set; } = default!;
     public string AnswerSource { get; set; } = default!;

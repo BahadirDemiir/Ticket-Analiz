@@ -66,7 +66,7 @@ public static class SuggestionMapping
         };
     }
 
-    public static SuggestionLog ToLog(this RagSuggestionResult result, string query)
+    public static SuggestionLog ToLog(this RagSuggestionResult result, string query, string? userName)
     {
         var web = result.Trace.WebSearch;
 
@@ -74,6 +74,7 @@ public static class SuggestionMapping
         {
             Id = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
+            UserName = userName,
             Query = query,
             Answer = result.Answer,
             AnswerSource = result.Source,

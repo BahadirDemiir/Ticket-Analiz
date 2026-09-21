@@ -1,12 +1,16 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Qdrant.Client;
+using TicketAnaliz.Core.Auth;
+using TicketAnaliz.Core.Entities;
 using TicketAnaliz.Core.Rag;
 using TicketAnaliz.Core.Repositories;
 using TicketAnaliz.Core.Search;
+using TicketAnaliz.Infrastructure.Auth;
 using TicketAnaliz.Infrastructure.Context;
 using TicketAnaliz.Infrastructure.Rag;
 using TicketAnaliz.Infrastructure.Repositories;
@@ -23,6 +27,9 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<ITicketRepository, TicketRepository>();
         services.AddScoped<ISuggestionLogRepository, SuggestionLogRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
+        services.AddScoped<IUserService, UserService>();
 
         return services;
     }

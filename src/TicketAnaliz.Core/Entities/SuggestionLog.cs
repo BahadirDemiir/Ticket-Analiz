@@ -9,6 +9,9 @@ public class SuggestionLog
     public Guid Id { get; set; }
     public DateTime CreatedAt { get; set; }
     public string Query { get; set; } = default!;
+
+    // Sorguyu kimin sordugu. Giris sistemi gelmeden onceki kayitlarda bos.
+    public string? UserName { get; set; }
     public string Answer { get; set; } = default!;
 
     public double ConfidencePercentage { get; set; }

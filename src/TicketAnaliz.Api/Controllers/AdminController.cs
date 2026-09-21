@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketAnaliz.Api.Contracts;
 using TicketAnaliz.Core.Repositories;
@@ -6,6 +7,7 @@ using TicketAnaliz.Core.Repositories;
 namespace TicketAnaliz.Api.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin")]
 [Route("api/[controller]")]
 public class AdminController : ControllerBase
 {
@@ -26,6 +28,7 @@ public class AdminController : ControllerBase
         {
             Id = l.Id,
             CreatedAt = l.CreatedAt,
+            UserName = l.UserName,
             Query = l.Query,
             AnswerSource = l.AnswerSource.ToString(),
             ConfidencePercentage = l.ConfidencePercentage,
@@ -52,6 +55,7 @@ public class AdminController : ControllerBase
         {
             Id = log.Id,
             CreatedAt = log.CreatedAt,
+            UserName = log.UserName,
             Query = log.Query,
             Answer = log.Answer,
             AnswerSource = log.AnswerSource.ToString(),
