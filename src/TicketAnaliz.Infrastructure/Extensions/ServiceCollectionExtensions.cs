@@ -74,6 +74,16 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddWebSearchServices(this IServiceCollection services)
+    {
+        services.AddHttpClient<IWebSearchService, TavilyWebSearchService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(20);
+        });
+
+        return services;
+    }
+
     public static IServiceCollection AddRagServices(this IServiceCollection services)
     {
         services.AddScoped<RagPromptBuilder>();

@@ -15,6 +15,7 @@ services.AddInfrastructureServices(configuration);
 services.AddSemanticKernelServices(configuration);
 services.AddQdrantServices(configuration);
 services.AddTicketSearchServices();
+services.AddWebSearchServices();
 services.AddRagServices();
 services.AddScoped<TicketSeedingService>();
 services.AddScoped<QuickSearchService>();
@@ -28,6 +29,21 @@ if (args.Length > 0 && args[0] == "--query")
     var queryText = string.Join(" ", args.Skip(1));
     var searchService = scope.ServiceProvider.GetRequiredService<QuickSearchService>();
     await searchService.SearchAsync(queryText);
+}
+else if (args.Length > 0 && args[0] == "--web")
+{
+    var queryText = string.Join(" ", args.Skip(1));
+    var webSearch = scope.ServiceProvider.GetRequiredService<TicketAnaliz.Core.Search.IWebSearchService>();
+
+    Console.WriteLine($"Web aramasi: \"{queryText}\"");
+    var webResults = await webSearch.SearchAsync(queryText);
+    Console.WriteLine($"{webResults.Count} sonuc bulundu.");
+    foreach (var r in webResults)
+    {
+        Console.WriteLine($"[Skor: {r.Score:F3}] {r.Title}");
+        Console.WriteLine($"  {r.Url}");
+        Console.WriteLine($"  {r.Content[..Math.Min(150, r.Content.Length)].ReplaceLineEndings(" ")}...");
+    }
 }
 else if (args.Length > 0 && args[0] == "--suggest")
 {
