@@ -1,0 +1,98 @@
+[
+  {
+    "id": "sap-yetki",
+    "kind": "technical",
+    "query": "sap sipariş ekranıma girince yetkisiz hatası alıyorum ancak yetkim var",
+    "expectedTopic": "SAP'de kullanıcının ilgili işlem/yetki nesnesi için yetki kontrolünden geçememesi (eksik yetki nesnesi, rol/profil atamasının kontrolü, SU53 ve PFCG gibi araçlarla teşhis). HTTP 401 / web portal / servis kimlik doğrulama hatası hakkındaki cevaplar YANLIŞTIR."
+  },
+  {
+    "id": "vpn-baglanti",
+    "kind": "technical",
+    "query": "VPN'e bağlanıyorum bağlandı diyor ama hiçbir siteye giremiyorum",
+    "expectedTopic": "VPN tüneli kurulduğu halde trafik akmaması: DNS ayarları, yönlendirme/split tunneling, güvenlik duvarı, IP/alt ağ çakışması gibi sorun giderme adımları. VPN'e hiç bağlanamama (kimlik doğrulama) odaklı cevaplar YANLIŞTIR."
+  },
+  {
+    "id": "outlook-sifre",
+    "kind": "technical",
+    "query": "outlook sürekli şifre soruyor girince de kabul etmiyor tekrar soruyor",
+    "expectedTopic": "Outlook'un tekrar tekrar parola istemesi: kayıtlı kimlik bilgilerini (Credential Manager) temizleme, modern kimlik doğrulama, profil yeniden oluşturma, parola/MFA durumu kontrolü gibi adımlar."
+  },
+  {
+    "id": "yazici-kuyruk",
+    "kind": "technical",
+    "query": "yazıcıya gönderdiğim belgeler kuyrukta bekliyor ama basılmıyor",
+    "expectedTopic": "Yazdırma kuyruğunun takılması: Print Spooler servisini yeniden başlatma, kuyruğu temizleme, yazıcı sürücüsü/bağlantı/çevrimdışı durumu kontrolü."
+  },
+  {
+    "id": "excel-makro",
+    "kind": "technical",
+    "query": "excelde makro çalıştırınca çalışma zamanı hatası 1004 veriyor",
+    "expectedTopic": "Excel VBA'da 'Run-time error 1004' (uygulama veya nesne tanımlı hata): nedenleri (geçersiz aralık/sayfa referansı, korumalı sayfa, kapalı çalışma kitabı vb.) ve hata ayıklama adımları."
+  },
+  {
+    "id": "mavi-ekran",
+    "kind": "technical",
+    "query": "windows güncellemesinden sonra bilgisayar açılışta mavi ekran veriyor",
+    "expectedTopic": "Windows güncellemesi sonrası mavi ekran (BSOD) ve açılış sorunu: güvenli mod, güncellemeyi geri alma/kaldırma, başlangıç onarımı, sürücü sorunları gibi adımlar."
+  },
+  {
+    "id": "teams-mikrofon",
+    "kind": "technical",
+    "query": "teams toplantısında mikrofonum çalışmıyor karşı taraf beni duyamıyor",
+    "expectedTopic": "Microsoft Teams'de mikrofonun çalışmaması: Teams cihaz ayarlarında doğru mikrofonu seçme, Windows gizlilik/mikrofon izinleri, sessize alma, sürücü/uygulama yeniden başlatma."
+  },
+  {
+    "id": "sap-form-bos",
+    "kind": "technical",
+    "query": "sap'de fatura yazdırırken form çıkmıyor boş sayfa geliyor",
+    "expectedTopic": "SAP çıktı/yazdırma sorunu: fatura formunun (SAPscript/Smart Forms/Adobe Forms) boş çıkması, çıktı belirleme (output determination), form/yazıcı/spool ayarlarının kontrolü."
+  },
+  {
+    "id": "sap-sifre-kilit",
+    "kind": "technical",
+    "query": "sap şifremi unuttum ve kullanıcım kilitlendi ne yapmalıyım",
+    "expectedTopic": "SAP kullanıcısının kilitlenmesi ve parola sıfırlama: yöneticinin SU01 ile kilidi açıp parolayı sıfırlaması, yanlış parola denemesi sınırı, ilk girişte parola değiştirme."
+  },
+  {
+    "id": "sql-yavas",
+    "kind": "technical",
+    "query": "sql server'da bir sorgu çok yavaş çalışıyor eskiden hızlıydı",
+    "expectedTopic": "SQL Server sorgu performansı gerilemesi: yürütme planı inceleme, eksik/parçalanmış indeksler, güncel olmayan istatistikler, parameter sniffing, bloklanma gibi teşhis adımları."
+  },
+  {
+    "id": "ag-paylasim",
+    "kind": "technical",
+    "query": "ağ sürücüsündeki klasöre erişemiyorum erişim engellendi diyor",
+    "expectedTopic": "Ağ paylaşımına erişim reddedildi hatası: paylaşım ve NTFS izinlerini kontrol etme, kimlik bilgileri, grup üyeliği, eşlenmiş sürücü/kimlik bilgisi önbelleği gibi adımlar."
+  },
+  {
+    "id": "excel-bozuk",
+    "kind": "technical",
+    "query": "excel dosyası açılmıyor dosya bozuk diyor çok önemli dosya",
+    "expectedTopic": "Bozuk Excel dosyasının kurtarılması: 'Aç ve Onar', dosyayı farklı bir yöntemle açma, önceki sürüm/otomatik kurtarma/yedekten geri yükleme gibi adımlar."
+  },
+  {
+    "id": "yemek",
+    "kind": "nontechnical",
+    "query": "öğlen yemekleri neden bu kadar kötü",
+    "expectedTopic": "Teknik bir destek talebi değil. Sistem bir çözüm önerisi ÜRETMEMELİ, BT'ye yönlendirmelidir."
+  },
+  {
+    "id": "izin",
+    "kind": "nontechnical",
+    "query": "yarın izinliyim bunu kime bildirmem gerekiyor",
+    "expectedTopic": "Teknik bir destek talebi değil (insan kaynakları/idari konu). Sistem bir çözüm önerisi ÜRETMEMELİ."
+  },
+  {
+    "id": "maas",
+    "kind": "nontechnical",
+    "query": "maaş zammı ne zaman yapılacak",
+    "expectedTopic": "Teknik bir destek talebi değil (insan kaynakları konusu). Sistem bir çözüm önerisi ÜRETMEMELİ."
+  },
+  {
+    "id": "klima",
+    "kind": "nontechnical",
+    "query": "ofis çok soğuk klimanın ayarı değiştirilebilir mi",
+    "expectedTopic": "Teknik bir yazılım/BT talebi değil (idari/tesis konusu). Sistem bir çözüm önerisi ÜRETMEMELİ."
+  }
+]
