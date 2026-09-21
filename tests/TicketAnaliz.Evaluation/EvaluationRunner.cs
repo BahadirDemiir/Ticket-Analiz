@@ -71,7 +71,7 @@ public class EvaluationRunner
             var recall = groundTruth.Count > 0 ? (double)truePositives / groundTruth.Count : 0;
 
             // Tam RAG akisi: cevap, guven skoru, hallucination kontrolu, trace.
-            var suggestion = await _ragOrchestrationService.GenerateSuggestionAsync(queryText);
+            var suggestion = await _ragOrchestrationService.GenerateSuggestionAsync(queryText, allowWebFallback: false);
 
             CorrectnessVerdict? correctness = null;
             if (!suggestion.Confidence.ShouldEscalate && !string.IsNullOrWhiteSpace(ticket.Resolution))

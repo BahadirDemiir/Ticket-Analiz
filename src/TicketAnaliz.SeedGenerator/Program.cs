@@ -15,7 +15,6 @@ services.AddInfrastructureServices(configuration);
 services.AddSemanticKernelServices(configuration);
 services.AddQdrantServices(configuration);
 services.AddTicketSearchServices();
-services.AddWebSearchServices();
 services.AddRagServices();
 services.AddScoped<TicketSeedingService>();
 services.AddScoped<QuickSearchService>();
@@ -56,8 +55,8 @@ else if (args.Length > 0 && args[0] == "--suggest")
 
     var result = await ragService.GenerateSuggestionAsync(queryText);
 
-    Console.WriteLine($"=== GUVEN SKORU: %{result.Confidence.Percentage} ===");
-    Console.WriteLine(result.Confidence.ShouldEscalate ? "DURUM: BT ekibine yonlendirilecek" : "DURUM: Cevap gosteriliyor");
+    Console.WriteLine($"=== GUVEN SKORU (gecmis kayitlar): %{result.Confidence.Percentage} ===");
+    Console.WriteLine($"CEVAP KAYNAGI: {result.Source}");
     Console.WriteLine($"  Ortalama Benzerlik: {result.Confidence.AverageSimilarity:F3}  (agirlik: %50)");
     Console.WriteLine($"  Cozulmus Orani:     {result.Confidence.ResolvedRatio:F3}  (agirlik: %30)");
     Console.WriteLine($"  Kaynak Sayisi Fakt.: {result.Confidence.SourceCountFactor:F3}  (agirlik: %20)");
@@ -74,6 +73,10 @@ else if (args.Length > 0 && args[0] == "--suggest")
         Console.WriteLine($"  Hallucination kontrol suresi: {result.Trace.HallucinationCheckDuration.Value.TotalMilliseconds:F0} ms");
     }
     Console.WriteLine($"  Toplam sure:                {result.Trace.TotalDuration.TotalMilliseconds:F0} ms");
+    if (result.Trace.WebSearch is { } webTrace)
+    {
+        Console.WriteLine($"  Web arama:                  \"{webTrace.RewrittenQuery ?? "(sorgu uretilmedi)"}\" -> {webTrace.ResultCount} sonuc, {webTrace.AcceptedCount} kabul (en yuksek skor: {webTrace.TopScore?.ToString("F2") ?? "-"}), {webTrace.Duration.TotalMilliseconds:F0} ms");
+    }
     Console.WriteLine();
     Console.WriteLine("=== LLM CEVABI ===");
     Console.WriteLine(result.Answer);
@@ -86,7 +89,17 @@ else if (args.Length > 0 && args[0] == "--suggest")
         Console.WriteLine();
     }
 
-    Console.WriteLine("=== KULLANILAN KAYNAKLAR ===");
+    if (result.WebSources is { Count: > 0 })
+    {
+        Console.WriteLine("=== KULLANILAN WEB KAYNAKLARI ===");
+        foreach (var web in result.WebSources)
+        {
+            Console.WriteLine($"[Skor: {web.Score:F2}] {web.Title}\n  {web.Url}");
+        }
+        Console.WriteLine();
+    }
+
+    Console.WriteLine("=== GECMIS TICKET ADAYLARI ===");
     foreach (var source in result.Sources)
     {
         Console.WriteLine($"[Skor: {source.Score:F4}] ({source.Ticket.Status}) {source.Ticket.Id} - {source.Ticket.Title}");

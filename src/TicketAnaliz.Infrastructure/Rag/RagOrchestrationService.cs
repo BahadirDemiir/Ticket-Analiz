@@ -9,6 +9,7 @@ namespace TicketAnaliz.Infrastructure.Rag;
 public class RagOrchestrationService : IRagOrchestrationService
 {
     private readonly ITicketSearchService _ticketSearchService;
+    private readonly IWebFallbackService _webFallbackService;
     private readonly RagPromptBuilder _promptBuilder;
     private readonly ConfidenceScoreCalculator _confidenceCalculator;
     private readonly IHallucinationChecker _hallucinationChecker;
@@ -17,12 +18,14 @@ public class RagOrchestrationService : IRagOrchestrationService
 
     public RagOrchestrationService(
         ITicketSearchService ticketSearchService,
+        IWebFallbackService webFallbackService,
         RagPromptBuilder promptBuilder,
         ConfidenceScoreCalculator confidenceCalculator,
         IHallucinationChecker hallucinationChecker,
         Kernel kernel)
     {
         _ticketSearchService = ticketSearchService;
+        _webFallbackService = webFallbackService;
         _promptBuilder = promptBuilder;
         _confidenceCalculator = confidenceCalculator;
         _hallucinationChecker = hallucinationChecker;
@@ -30,7 +33,7 @@ public class RagOrchestrationService : IRagOrchestrationService
         _chatService = kernel.GetRequiredService<IChatCompletionService>();
     }
 
-    public async Task<RagSuggestionResult> GenerateSuggestionAsync(string queryText, CancellationToken ct = default)
+    public async Task<RagSuggestionResult> GenerateSuggestionAsync(string queryText, bool allowWebFallback = true, CancellationToken ct = default)
     {
         var totalStopwatch = Stopwatch.StartNew();
 
@@ -42,12 +45,25 @@ public class RagOrchestrationService : IRagOrchestrationService
         // Guven skorunu, LLM'i cagirmadan ONCE, sadece bulunan kaynaklara bakarak hesapla.
         var confidence = _confidenceCalculator.Calculate(sources);
 
-        // Guven yeterince dusukse LLM'e hic gitme
+        // Guven yeterince dusukse gecmis kayitlarla LLM'e hic gitme
         if (confidence.ShouldEscalate)
         {
+            WebFallbackOutcome? web = null;
+            if (allowWebFallback)
+            {
+                web = await _webFallbackService.TryAsync(queryText, ct);
+            }
+
             totalStopwatch.Stop();
-            var escalatedTrace = new RagTrace(searchStopwatch.Elapsed, null, null, totalStopwatch.Elapsed);
-            return new RagSuggestionResult(confidence.Message, sources, confidence, HallucinationCheck: null, escalatedTrace);
+
+            if (web?.Answer is not null)
+            {
+                var webTrace = new RagTrace(searchStopwatch.Elapsed, web.GenerationDuration, web.HallucinationCheckDuration, totalStopwatch.Elapsed, web.Trace);
+                return new RagSuggestionResult(web.Answer, sources, confidence, web.HallucinationCheck, webTrace, AnswerSource.WebSearch, web.Sources);
+            }
+
+            var escalatedTrace = new RagTrace(searchStopwatch.Elapsed, null, null, totalStopwatch.Elapsed, web?.Trace);
+            return new RagSuggestionResult(confidence.Message, sources, confidence, HallucinationCheck: null, escalatedTrace, AnswerSource.Escalated);
         }
 
         // Bulunanlari, rastgele boundary ile guvenli bir prompt'a yerlestir, prompt injection korumasi

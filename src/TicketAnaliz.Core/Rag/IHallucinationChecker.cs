@@ -7,4 +7,6 @@ public record HallucinationCheckResult(bool HasUnsupportedClaims, string Explana
 public interface IHallucinationChecker
 {
     Task<HallucinationCheckResult> CheckAsync(string answer, IReadOnlyList<TicketSearchResult> sources, CancellationToken ct = default);
+
+    Task<HallucinationCheckResult> CheckWebAsync(string answer, IReadOnlyList<WebSearchResult> sources, CancellationToken ct = default);
 }

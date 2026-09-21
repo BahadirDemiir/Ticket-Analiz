@@ -42,6 +42,9 @@ public class AppDbContext : DbContext
             entity.Property(l => l.Answer).HasColumnType("nvarchar(max)").IsRequired();
             entity.Property(l => l.HallucinationExplanation).HasColumnType("nvarchar(max)");
             entity.Property(l => l.SourcesJson).HasColumnType("nvarchar(max)");
+            entity.Property(l => l.AnswerSource).HasConversion<string>().HasMaxLength(30);
+            entity.Property(l => l.WebSourcesJson).HasColumnType("nvarchar(max)");
+            entity.Property(l => l.WebSearchQuery).HasMaxLength(500);
 
             entity.HasIndex(l => l.CreatedAt);
         });

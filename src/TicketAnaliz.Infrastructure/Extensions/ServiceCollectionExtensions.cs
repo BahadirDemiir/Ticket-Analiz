@@ -86,6 +86,11 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRagServices(this IServiceCollection services)
     {
+        // Orkestrasyon web fallback'e de bagli, o yuzden her host'ta (Api/Evaluation/SeedGenerator) kayitli olmali.
+        services.AddWebSearchServices();
+        services.AddScoped<WebQueryRewriter>();
+        services.AddScoped<WebRelevanceFilter>();
+        services.AddScoped<IWebFallbackService, WebFallbackService>();
         services.AddScoped<RagPromptBuilder>();
         services.AddScoped<ConfidenceScoreCalculator>();
         services.AddScoped<IHallucinationChecker, HallucinationChecker>();

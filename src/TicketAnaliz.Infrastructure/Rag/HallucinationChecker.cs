@@ -17,11 +17,27 @@ public class HallucinationChecker : IHallucinationChecker
         _chatService = kernel.GetRequiredService<IChatCompletionService>();
     }
 
-    public async Task<HallucinationCheckResult> CheckAsync(string answer, IReadOnlyList<TicketSearchResult> sources, CancellationToken ct = default)
+    // cevap ticketlardan üretildiyse kaynak olarak tickettaki verileri kullan
+    public Task<HallucinationCheckResult> CheckAsync(string answer, IReadOnlyList<TicketSearchResult> sources, CancellationToken ct = default)
     {
         var sourcesText = string.Join("\n\n", sources.Select((s, i) =>
             $"[Kaynak {i + 1}]\nBaşlık: {s.Ticket.Title}\nAçıklama: {s.Ticket.Description}\nÇözüm: {s.Ticket.Resolution}"));
 
+        return CheckAgainstTextAsync(answer, sourcesText, ct);
+    }
+
+    // cevap webden üretildiyse kaynak olarak webdeki verileri kullan
+
+    public Task<HallucinationCheckResult> CheckWebAsync(string answer, IReadOnlyList<WebSearchResult> sources, CancellationToken ct = default)
+    {
+        var sourcesText = string.Join("\n\n", sources.Select((s, i) =>
+            $"[Kaynak {i + 1}]\nBaşlık: {s.Title}\nİçerik: {s.Content}"));
+
+        return CheckAgainstTextAsync(answer, sourcesText, ct);
+    }
+
+    private async Task<HallucinationCheckResult> CheckAgainstTextAsync(string answer, string sourcesText, CancellationToken ct)
+    {
         const string jsonFormatExample = """{"hasUnsupportedClaims": true veya false, "explanation": "kisa aciklama"}""";
 
         var prompt = $"""

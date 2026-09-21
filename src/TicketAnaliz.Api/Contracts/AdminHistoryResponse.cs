@@ -5,6 +5,7 @@ public class SuggestionLogSummaryDto
     public Guid Id { get; set; }
     public DateTime CreatedAt { get; set; }
     public string Query { get; set; } = default!;
+    public string AnswerSource { get; set; } = default!;
     public double ConfidencePercentage { get; set; }
     public bool ShouldEscalate { get; set; }
     public bool? HasHallucination { get; set; }
@@ -17,6 +18,7 @@ public class SuggestionLogDetailDto
     public DateTime CreatedAt { get; set; }
     public string Query { get; set; } = default!;
     public string Answer { get; set; } = default!;
+    public string AnswerSource { get; set; } = default!;
     public double ConfidencePercentage { get; set; }
     public bool ShouldEscalate { get; set; }
     public double ConfidenceAverageSimilarity { get; set; }
@@ -25,6 +27,11 @@ public class SuggestionLogDetailDto
     public bool? HasHallucination { get; set; }
     public string? HallucinationExplanation { get; set; }
     public List<SuggestionLogSourceDto> Sources { get; set; } = new();
+    public List<WebSourceDto> WebSources { get; set; } = new();
+    public string? WebSearchQuery { get; set; }
+    public int? WebSearchResultCount { get; set; }
+    public int? WebSearchAcceptedCount { get; set; }
+    public double? WebSearchDurationMs { get; set; }
     public double SearchDurationMs { get; set; }
     public double? GenerationDurationMs { get; set; }
     public double? HallucinationCheckDurationMs { get; set; }
