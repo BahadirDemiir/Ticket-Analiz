@@ -17,6 +17,7 @@ public class RerankingService
         _chatService = kernel.GetRequiredService<IChatCompletionService>();
     }
 
+
     public async Task<List<int>> GetRelevantIndicesAsync(string query, IReadOnlyList<RerankCandidate> candidates)
     {
         var candidatesText = string.Join("\n\n", candidates.Select(c =>
@@ -60,14 +61,12 @@ public class RerankingService
         }
         catch (JsonException)
         {
-            // LLM beklenmedik bir format donduyse, guvenli tarafta kal: hicbirini eleme.
             return candidates.Select(c => c.Index).ToList();
         }
     }
 
     private static string ExtractJson(string content)
     {
-        // Artik cevap once gerekce metni, en sonda JSON iceriyor - "son { ... son }" arasini al.
         var trimmed = content.Trim();
         var lastOpenBrace = trimmed.LastIndexOf('{');
         var lastCloseBrace = trimmed.LastIndexOf('}');
