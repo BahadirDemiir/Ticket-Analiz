@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MatlıNET - Giriş</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --card-bg: #ffffff;
+    --text: #1f2430;
+    --muted: #6b7280;
+    --border: #e2e5ea;
+    --primary: #2f6f4f;
+    --primary-dark: #23573e;
+    --red: #c53030;
+    --red-bg: #fdecec;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .box { width: 100%; max-width: 380px; padding: 20px; }
+
+  h1 { font-size: 20px; margin: 0 0 4px; text-align: center; }
+  .subtitle { color: var(--muted); font-size: 13px; text-align: center; margin: 0 0 20px; }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+  }
+
+  .tabs { display: flex; margin-bottom: 18px; border-bottom: 1px solid var(--border); }
+  .tab {
+    flex: 1;
+    padding: 8px 0;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    background: none;
+    border-top: none; border-left: none; border-right: none;
+    margin: 0;
+  }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; }
+
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+
+  button.submit {
+    width: 100%;
+    margin-top: 18px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 11px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button.submit:hover { background: var(--primary-dark); }
+  button.submit:disabled { background: #a9b0ab; cursor: not-allowed; }
+
+  .error {
+    display: none;
+    background: var(--red-bg);
+    color: var(--red);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 14px;
+  }
+
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  #registerOnly { display: none; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>MatlıNET</h1>
+  <p class="subtitle">AI Destekli Ticket Çözüm Asistanı</p>
+
+  <div class="card">
+    <div class="tabs">
+      <button type="button" class="tab active" id="tabLogin" onclick="setMode('login')">Giriş yap</button>
+      <button type="button" class="tab" id="tabRegister" onclick="setMode('register')">Kayıt ol</button>
+    </div>
+
+    <form id="authForm" onsubmit="submitForm(event)">
+      <label for="userName">Kullanıcı adı</label>
+      <input id="userName" autocomplete="username" required>
+
+      <label for="password">Şifre</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+
+      <div id="registerOnly">
+        <label for="password2">Şifre (tekrar)</label>
+        <input id="password2" type="password" autocomplete="new-password">
+        <div class="hint">Kullanıcı adı 3-50 karakter (harf, rakam, . _ -). Şifre en az 8 karakter.</div>
+      </div>
+
+      <div class="error" id="errorBox"></div>
+      <button class="submit" id="submitBtn" type="submit">Giriş yap</button>
+    </form>
+  </div>
+</div>
+
+<script>
+let mode = 'login';
+
+function setMode(next) {
+  mode = next;
+  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+  document.getElementById('registerOnly').style.display = mode === 'register' ? 'block' : 'none';
+  document.getElementById('password').autocomplete = mode === 'register' ? 'new-password' : 'current-password';
+  document.getElementById('submitBtn').textContent = mode === 'register' ? 'Kayıt ol' : 'Giriş yap';
+  showError('');
+}
+
+function showError(message) {
+  const box = document.getElementById('errorBox');
+  box.textContent = message;
+  box.style.display = message ? 'block' : 'none';
+}
+
+async function submitForm(event) {
+  event.preventDefault();
+  showError('');
+
+  const userName = document.getElementById('userName').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (mode === 'register' && password !== document.getElementById('password2').value) {
+    showError('Şifreler aynı değil.');
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('/api/auth/' + mode, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userName, password })
+    });
+
+    if (response.status === 429) {
+      showError('Çok fazla deneme yaptınız, bir dakika sonra tekrar deneyin.');
+      return;
+    }
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      showError(data?.message ?? 'İşlem başarısız oldu.');
+      return;
+    }
+
+    window.location.href = '/';
+  } catch (err) {
+    showError('Sunucuya ulaşılamadı: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Zaten giris yapmissa direkt ana sayfaya gec.
+fetch('/api/auth/me').then(r => { if (r.ok) window.location.href = '/'; }).catch(() => {});
+</script>
+</body>
+</html>

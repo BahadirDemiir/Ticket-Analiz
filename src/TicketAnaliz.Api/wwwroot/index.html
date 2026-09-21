@@ -51,6 +51,8 @@
     font-size: 14px;
   }
 
+  header p.userbar { margin-top: 6px; font-size: 13px; }
+
   .card {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -230,7 +232,12 @@
 <div class="container">
   <header>
     <h1>MatlıNET - AI Destekli Ticket Çözüm Asistanı</h1>
-    <p>Geçmiş ticket kayıtlarına dayalı otomatik çözüm önerisi (RAG tabanlı) &middot; <a href="/admin.html">Admin: Sorgu Geçmişi</a></p>
+    <p>Geçmiş ticket kayıtlarına dayalı otomatik çözüm önerisi (RAG tabanlı)</p>
+    <p class="userbar">
+      <span id="userInfo"></span>
+      <a id="adminLink" href="/admin.html" hidden>&middot; Admin: Sorgu Geçmişi</a>
+      &middot; <a href="#" onclick="logout(); return false;">Çıkış yap</a>
+    </p>
   </header>
 
   <div class="card">
@@ -286,6 +293,11 @@ async function suggestSolution() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query })
     });
+
+    if (response.status === 401) {
+      window.location.href = '/login.html';
+      return;
+    }
 
     if (!response.ok) {
       throw new Error('İstek başarısız oldu: ' + response.status);
@@ -386,6 +398,29 @@ function renderResult(data) {
 
   resultArea.style.display = 'block';
 }
+
+async function loadCurrentUser() {
+  try {
+    const response = await fetch('/api/auth/me');
+    if (!response.ok) {
+      window.location.href = '/login.html';
+      return;
+    }
+    const me = await response.json();
+    document.getElementById('userInfo').textContent =
+      me.userName + ' (' + (me.role === 'Admin' ? 'Admin' : 'Kullanıcı') + ')';
+    document.getElementById('adminLink').hidden = me.role !== 'Admin';
+  } catch {
+    // Sunucuya ulasilamazsa sayfa yine de acik kalsin, istek atilinca hata gorunur.
+  }
+}
+
+async function logout() {
+  await fetch('/api/auth/logout', { method: 'POST' });
+  window.location.href = '/login.html';
+}
+
+loadCurrentUser();
 
 function escapeHtml(str) {
   const div = document.createElement('div');
