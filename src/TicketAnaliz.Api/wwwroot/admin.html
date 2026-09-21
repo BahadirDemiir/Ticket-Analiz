@@ -176,8 +176,8 @@ async function loadDetail(id) {
   document.getElementById('detailQuery').textContent = d.query;
   document.getElementById('detailAnswer').textContent = d.answer;
 
-  document.getElementById('detailSources').innerHTML = d.sources.map(s => `
-    <div class="source-row"><span>${escapeHtml(s.title)}</span><span>%${Math.round(s.score * 100)}</span></div>
+  document.getElementById('detailSources').innerHTML = d.sources.map((s, i) => `
+    <div class="source-row"><span>Kaynak ${i + 1} · ${escapeHtml(s.title)}</span><span>%${Math.round(s.score * 100)}</span></div>
   `).join('') || '<span class="hint">Kaynak yok.</span>';
 
   document.getElementById('detailHallucination').textContent =

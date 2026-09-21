@@ -317,10 +317,10 @@ function renderResult(data) {
     sourcesCard.style.display = 'block';
   }
 
-  sourcesList.innerHTML = data.sources.map(s => `
+  sourcesList.innerHTML = data.sources.map((s, i) => `
     <div class="source-card">
       <div class="top-row">
-        <span class="title">${escapeHtml(s.title)}</span>
+        <span class="title">Kaynak ${i + 1} · ${escapeHtml(s.title)}</span>
         <span class="score">Benzerlik: %${Math.round(s.score * 100)}</span>
       </div>
       <div class="meta">${escapeHtml(s.category)} · ${escapeHtml(s.department)} · ${escapeHtml(s.status)}</div>

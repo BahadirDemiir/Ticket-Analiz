@@ -28,12 +28,13 @@ public class RagPromptBuilder
             4. Cevabını şu formatta ver:
                Olası Kök Neden: ...
                Önerilen Çözüm Adımları: ...
-               Kullanılan Kaynak Ticket Numaraları: (kaynak listesi)
+               Kullanılan Kaynak Ticket Numaraları: (sadece "Kaynak 1", "Kaynak 2" gibi
+               aşağıda verilen kaynak etiketlerini kullan; ticket ID veya GUID ASLA YAZMA)
             """;
 
         var sourceBlocks = string.Join("\n\n", sources.Select((s, i) => $"""
             <<<VERI_{boundary}>>>
-            Kaynak {i + 1} - Ticket ID: {s.Ticket.Id}
+            Kaynak {i + 1}
             Benzerlik: %{s.Score * 100:F0}
             Durum: {s.Ticket.Status}
             Başlık: {s.Ticket.Title}
