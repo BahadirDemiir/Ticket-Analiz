@@ -110,6 +110,22 @@
   .badge.green { background: var(--green-bg); color: var(--green); }
   .badge.yellow { background: var(--yellow-bg); color: var(--yellow); }
   .badge.red { background: var(--red-bg); color: var(--red); }
+  .badge.web { background: var(--yellow-bg); color: var(--yellow); border: 1px solid #ecd9a6; }
+
+  .web-warning {
+    background: var(--yellow-bg);
+    color: #7a5312;
+    border: 1px solid #ecd9a6;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+
+  .source-card a.title { color: var(--primary); text-decoration: none; }
+  .source-card a.title:hover { text-decoration: underline; }
+  .source-card .meta.url { word-break: break-all; }
 
   .badge-row {
     display: flex;
@@ -235,7 +251,7 @@
     </div>
 
     <div class="card" id="sourcesCard">
-      <h3>Kaynak Ticket'lar</h3>
+      <h3 id="sourcesTitle">Kaynak Ticket'lar</h3>
       <div id="sourcesList"></div>
     </div>
 
@@ -299,36 +315,66 @@ function renderResult(data) {
   const sourcesList = document.getElementById('sourcesList');
   const traceGrid = document.getElementById('traceGrid');
 
-  const confClass = confidenceBadgeClass(data.confidencePercentage, data.shouldEscalate);
-  badgeRow.innerHTML = `
-    <span class="badge ${confClass}">Güven Seviyesi: %${data.confidencePercentage}</span>
-    ${data.hallucinationCheck
-      ? `<span class="badge ${data.hallucinationCheck.hasUnsupportedClaims ? 'red' : 'green'}">
-           ${data.hallucinationCheck.hasUnsupportedClaims ? 'Hallucination: Şüpheli' : 'Hallucination: Temiz'}
-         </span>`
-      : ''}
-  `;
+  const isWeb = data.answerSource === 'WebSearch';
+  const hallucinationBadge = data.hallucinationCheck
+    ? `<span class="badge ${data.hallucinationCheck.hasUnsupportedClaims ? 'red' : 'green'}">
+         ${data.hallucinationCheck.hasUnsupportedClaims ? 'Hallucination: Şüpheli' : 'Hallucination: Temiz'}
+       </span>`
+    : '';
 
-  if (data.shouldEscalate) {
-    answerContainer.innerHTML = `<div class="escalate-box">${escapeHtml(data.answer)}</div>`;
-    sourcesCard.style.display = data.sources.length > 0 ? 'block' : 'none';
-  } else {
-    answerContainer.innerHTML = `<div class="answer-box">${escapeHtml(data.answer)}</div>`;
+  const sourcesTitle = document.getElementById('sourcesTitle');
+
+  if (isWeb) {
+    // Web cevabinda gecmis kayit guveni dusuk oldugu icin oldugu gibi gostermek yaniltici olur;
+    // bunun yerine cevabin dogrulanmamis bir internet arastirmasi oldugu one cikarilir.
+    badgeRow.innerHTML = `
+      <span class="badge web">İnternet araştırması, doğrulanmamış</span>
+      ${hallucinationBadge}
+    `;
+    answerContainer.innerHTML = `
+      <div class="web-warning">
+        Geçmiş ticket kayıtlarında yeterli eşleşme bulunamadı (geçmiş kayıt güveni: %${data.confidencePercentage}).
+        Aşağıdaki öneri genel internet kaynaklarından derlendi, Matlı'nın kendi kurulumuna uymayabilir
+        ve uygulanmadan önce BT ekibi tarafından doğrulanmalıdır.
+      </div>
+      <div class="answer-box">${escapeHtml(data.answer)}</div>`;
+    sourcesTitle.textContent = 'İnternet Kaynakları';
     sourcesCard.style.display = 'block';
+    sourcesList.innerHTML = data.webSources.map((w, i) => webSourceCard(w, i)).join('')
+      || '<p class="hint">Kaynak bulunamadı.</p>';
+  } else {
+    const confClass = confidenceBadgeClass(data.confidencePercentage, data.shouldEscalate);
+    badgeRow.innerHTML = `
+      <span class="badge ${confClass}">Güven Seviyesi: %${data.confidencePercentage}</span>
+      ${hallucinationBadge}
+    `;
+
+    if (data.shouldEscalate) {
+      answerContainer.innerHTML = `<div class="escalate-box">${escapeHtml(data.answer)}</div>`;
+      sourcesCard.style.display = data.sources.length > 0 ? 'block' : 'none';
+    } else {
+      answerContainer.innerHTML = `<div class="answer-box">${escapeHtml(data.answer)}</div>`;
+      sourcesCard.style.display = 'block';
+    }
+
+    sourcesTitle.textContent = "Kaynak Ticket'lar";
+    sourcesList.innerHTML = data.sources.map((s, i) => `
+      <div class="source-card">
+        <div class="top-row">
+          <span class="title">Kaynak ${i + 1} · ${escapeHtml(s.title)}</span>
+          <span class="score">Benzerlik: %${Math.round(s.score * 100)}</span>
+        </div>
+        <div class="meta">${escapeHtml(s.category)} · ${escapeHtml(s.department)} · ${escapeHtml(s.status)}</div>
+      </div>
+    `).join('') || '<p class="hint">Kaynak bulunamadı.</p>';
   }
 
-  sourcesList.innerHTML = data.sources.map((s, i) => `
-    <div class="source-card">
-      <div class="top-row">
-        <span class="title">Kaynak ${i + 1} · ${escapeHtml(s.title)}</span>
-        <span class="score">Benzerlik: %${Math.round(s.score * 100)}</span>
-      </div>
-      <div class="meta">${escapeHtml(s.category)} · ${escapeHtml(s.department)} · ${escapeHtml(s.status)}</div>
-    </div>
-  `).join('') || '<p class="hint">Kaynak bulunamadı.</p>';
-
   const t = data.trace;
+  const w = t.webSearch;
   traceGrid.innerHTML = `
+    ${w ? `<div class="trace-item"><div class="label">Web Arama Sorgusu (LLM'in yeniden yazdığı)</div><div class="value">${w.rewrittenQuery ? escapeHtml(w.rewrittenQuery) : 'Üretilmedi (teknik bir sorun değil)'}</div></div>
+    <div class="trace-item"><div class="label">Web Sonuçları (kabul / toplam)</div><div class="value">${w.acceptedCount} / ${w.resultCount}${w.topScore != null ? ' · en yüksek skor ' + w.topScore.toFixed(2) : ''}</div></div>
+    <div class="trace-item"><div class="label">Web Arama Süresi</div><div class="value">${Math.round(w.durationMs)} ms</div></div>` : ''}
     <div class="trace-item"><div class="label">Ortalama Benzerlik (ağırlık %50)</div><div class="value">${t.confidenceAverageSimilarity.toFixed(3)}</div></div>
     <div class="trace-item"><div class="label">Çözülmüş Oranı (ağırlık %30)</div><div class="value">${t.confidenceResolvedRatio.toFixed(3)}</div></div>
     <div class="trace-item"><div class="label">Kaynak Sayısı Faktörü (ağırlık %20)</div><div class="value">${t.confidenceSourceCountFactor.toFixed(3)}</div></div>
@@ -344,7 +390,33 @@ function renderResult(data) {
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str ?? '';
-  return div.innerHTML;
+  return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Web sonuclari guvenilmeyen veri: sadece http/https linkleri tiklanabilir yapilir
+// (javascript: gibi semalar engellenir), link yeni sekmede ve referrer'siz acilir.
+function safeHttpUrl(raw) {
+  try {
+    const u = new URL(raw);
+    return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function webSourceCard(w, i) {
+  const url = safeHttpUrl(w.url);
+  const title = url
+    ? `<a class="title" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(w.title || url)}</a>`
+    : `<span class="title">${escapeHtml(w.title)}</span>`;
+  return `
+    <div class="source-card">
+      <div class="top-row">
+        <span>Kaynak ${i + 1} · ${title}</span>
+        <span class="score">Skor: ${w.score.toFixed(2)}</span>
+      </div>
+      <div class="meta url">${escapeHtml(url ?? '(geçersiz bağlantı)')}</div>
+    </div>`;
 }
 </script>
 </body>

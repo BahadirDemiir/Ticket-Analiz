@@ -70,6 +70,10 @@
   .badge.green { background: var(--green-bg); color: var(--green); }
   .badge.yellow { background: var(--yellow-bg); color: var(--yellow); }
   .badge.red { background: var(--red-bg); color: var(--red); }
+  .badge.web { background: var(--yellow-bg); color: var(--yellow); border: 1px solid #ecd9a6; }
+  .badge.gray { background: var(--bg); color: var(--muted); }
+  .source-row a { color: var(--primary); text-decoration: none; }
+  .source-row a:hover { text-decoration: underline; }
 
   #detailCard { display: none; }
 
@@ -106,13 +110,14 @@
         <tr>
           <th>Tarih</th>
           <th>Sorgu</th>
-          <th>Güven</th>
+          <th>Cevap Kaynağı</th>
+          <th>Geçmiş Kayıt Güveni</th>
           <th>Hallucination</th>
           <th>Süre</th>
         </tr>
       </thead>
       <tbody id="historyBody">
-        <tr><td colspan="5" class="hint">Yükleniyor...</td></tr>
+        <tr><td colspan="6" class="hint">Yükleniyor...</td></tr>
       </tbody>
     </table>
   </div>
@@ -123,12 +128,20 @@
       <div class="value" id="detailQuery"></div>
     </div>
     <div class="field">
+      <div class="label">Cevap Kaynağı</div>
+      <div class="value" id="detailSource"></div>
+    </div>
+    <div class="field">
       <div class="label">Cevap</div>
       <div class="value" id="detailAnswer"></div>
     </div>
     <div class="field">
-      <div class="label">Kaynak Ticket'lar</div>
+      <div class="label">Geçmiş Ticket Adayları</div>
       <div id="detailSources"></div>
+    </div>
+    <div class="field" id="detailWebField">
+      <div class="label">İnternet Kaynakları</div>
+      <div id="detailWebSources"></div>
     </div>
     <div class="field">
       <div class="label">Hallucination Kontrolü</div>
@@ -150,7 +163,7 @@ async function loadHistory() {
     const items = await res.json();
 
     if (items.length === 0) {
-      body.innerHTML = '<tr><td colspan="5" class="hint">Henüz kaydedilmiş bir sorgu yok. Ana sayfadan bir çözüm önerisi isteyin.</td></tr>';
+      body.innerHTML = '<tr><td colspan="6" class="hint">Henüz kaydedilmiş bir sorgu yok. Ana sayfadan bir çözüm önerisi isteyin.</td></tr>';
       return;
     }
 
@@ -158,13 +171,14 @@ async function loadHistory() {
       <tr class="row" onclick="loadDetail('${item.id}')">
         <td>${new Date(item.createdAt).toLocaleString('tr-TR')}</td>
         <td>${escapeHtml(truncate(item.query, 70))}</td>
+        <td>${sourceBadge(item.answerSource)}</td>
         <td>${confidenceBadge(item.confidencePercentage, item.shouldEscalate)}</td>
         <td>${hallucinationBadge(item.hasHallucination)}</td>
         <td>${Math.round(item.totalDurationMs)} ms</td>
       </tr>
     `).join('');
   } catch (err) {
-    body.innerHTML = '<tr><td colspan="5" class="hint">Hata: ' + escapeHtml(err.message) + '</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" class="hint">Hata: ' + escapeHtml(err.message) + '</td></tr>';
   }
 }
 
@@ -175,13 +189,23 @@ async function loadDetail(id) {
 
   document.getElementById('detailQuery').textContent = d.query;
   document.getElementById('detailAnswer').textContent = d.answer;
+  document.getElementById('detailSource').innerHTML = sourceBadge(d.answerSource);
+
+  const webField = document.getElementById('detailWebField');
+  const attempted = d.webSearchDurationMs != null;
+  webField.style.display = attempted ? 'block' : 'none';
+  document.getElementById('detailWebSources').innerHTML =
+    `<div class="hint" style="margin-bottom:6px">Arama sorgusu: ${d.webSearchQuery ? escapeHtml(d.webSearchQuery) : '(üretilmedi - teknik bir sorun değil)'} · ${d.webSearchAcceptedCount ?? 0} / ${d.webSearchResultCount ?? 0} sonuç kabul edildi</div>` +
+    (d.webSources.map((w, i) => `
+      <div class="source-row"><span>Kaynak ${i + 1} · ${webLink(w)}</span><span>${w.score.toFixed(2)}</span></div>
+    `).join('') || '<span class="hint">Kullanılan web kaynağı yok.</span>');
 
   document.getElementById('detailSources').innerHTML = d.sources.map((s, i) => `
     <div class="source-row"><span>Kaynak ${i + 1} · ${escapeHtml(s.title)}</span><span>%${Math.round(s.score * 100)}</span></div>
   `).join('') || '<span class="hint">Kaynak yok.</span>';
 
   document.getElementById('detailHallucination').textContent =
-    d.hasHallucination === null ? '(hesaplanmadı - düşük güven nedeniyle LLM çağrılmadı)'
+    d.hasHallucination === null ? '(hesaplanmadı - LLM ile cevap üretilmedi)'
     : (d.hasHallucination ? 'Şüpheli: ' + d.hallucinationExplanation : 'Temiz: ' + d.hallucinationExplanation);
 
   document.getElementById('detailTrace').innerHTML = `
@@ -189,6 +213,7 @@ async function loadDetail(id) {
     <div class="trace-item"><div class="label">Çözülmüş Oranı</div><div class="value">${d.confidenceResolvedRatio.toFixed(3)}</div></div>
     <div class="trace-item"><div class="label">Kaynak Sayısı Faktörü</div><div class="value">${d.confidenceSourceCountFactor.toFixed(3)}</div></div>
     <div class="trace-item"><div class="label">Arama Süresi</div><div class="value">${Math.round(d.searchDurationMs)} ms</div></div>
+    ${d.webSearchDurationMs != null ? `<div class="trace-item"><div class="label">Web Arama Süresi</div><div class="value">${Math.round(d.webSearchDurationMs)} ms</div></div>` : ''}
     ${d.generationDurationMs != null ? `<div class="trace-item"><div class="label">LLM Üretim Süresi</div><div class="value">${Math.round(d.generationDurationMs)} ms</div></div>` : ''}
     ${d.hallucinationCheckDurationMs != null ? `<div class="trace-item"><div class="label">Hallucination Kontrol Süresi</div><div class="value">${Math.round(d.hallucinationCheckDurationMs)} ms</div></div>` : ''}
     <div class="trace-item"><div class="label">Toplam Süre</div><div class="value">${Math.round(d.totalDurationMs)} ms</div></div>
@@ -203,6 +228,24 @@ function confidenceBadge(pct, escalate) {
   return `<span class="badge ${cls}">%${pct}</span>`;
 }
 
+function sourceBadge(source) {
+  if (source === 'WebSearch') return '<span class="badge web">İnternet (doğrulanmamış)</span>';
+  if (source === 'Escalated') return '<span class="badge red">BT'ye yönlendirildi</span>';
+  return '<span class="badge green">Geçmiş kayıt</span>';
+}
+
+// Web sonuclari guvenilmeyen veri: sadece http/https linkleri tiklanabilir.
+function webLink(w) {
+  let url = null;
+  try {
+    const u = new URL(w.url);
+    if (u.protocol === 'http:' || u.protocol === 'https:') url = u.href;
+  } catch {}
+  return url
+    ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(w.title || url)}</a>`
+    : escapeHtml(w.title);
+}
+
 function hallucinationBadge(has) {
   if (has === null) return '<span class="hint">-</span>';
   return has ? '<span class="badge red">Şüpheli</span>' : '<span class="badge green">Temiz</span>';
@@ -215,7 +258,7 @@ function truncate(str, len) {
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str ?? '';
-  return div.innerHTML;
+  return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 loadHistory();
